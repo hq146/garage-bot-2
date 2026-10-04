@@ -7,170 +7,359 @@
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
   :root{
-    --bg:#14141a; --surface:#1c1c22; --surface2:#22222a; --line:#2c2c31;
-    --cream:#f0e9db; --muted:#9a988f; --blue:#4a90d9; --red:#c43c3a;
+    --bg:#0a0a0c; --card:#18181b; --card2:#222226; --line:#2a2a2f;
+    --text:#f4f1ea; --muted:#8d8b85; --accent:#ff7a3d; --blue:#5aa2ff; --green:#4cc38a;
+    --side:max(14px, calc(50% - 266px));
   }
-  *{box-sizing:border-box;}
-  html,body{margin:0;height:100%;background:var(--bg);color:var(--cream);
-    font-family:-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-tap-highlight-color:transparent;}
-  body{padding-bottom:env(safe-area-inset-bottom,0);}
-  header{position:sticky;top:0;z-index:5;background:var(--bg);
-    padding:calc(16px + env(safe-area-inset-top,0)) 18px 10px;border-bottom:1px solid var(--line);}
-  h1{margin:0 0 4px;font-size:22px;letter-spacing:.5px;}
-  .note{margin:0;color:var(--muted);font-size:13px;}
-  nav{display:flex;gap:8px;overflow-x:auto;padding:12px 18px;scrollbar-width:none;}
-  nav::-webkit-scrollbar{display:none;}
-  .tab{flex:none;padding:8px 14px;border-radius:20px;background:var(--surface);
-    color:var(--muted);font-size:14px;border:1px solid var(--line);white-space:nowrap;}
-  .tab.active{background:var(--cream);color:var(--bg);border-color:var(--cream);font-weight:600;}
-  main{padding:4px 18px 100px;}
-  .card{display:flex;gap:14px;background:var(--surface);border:1px solid var(--line);
-    border-radius:14px;padding:14px;margin-bottom:12px;align-items:flex-start;}
-  .icon{flex:none;width:52px;height:52px;border-radius:10px;background:var(--surface2);
-    display:flex;align-items:center;justify-content:center;}
-  .icon svg{width:28px;height:28px;stroke:var(--blue);fill:none;stroke-width:1.6;}
-  .body{flex:1;min-width:0;}
-  .name{font-size:15px;font-weight:600;margin:0 0 3px;}
-  .desc{font-size:13px;color:var(--muted);margin:0 0 8px;line-height:1.4;}
-  .badge{display:inline-block;font-size:11px;color:var(--muted);border:1px solid var(--line);
-    border-radius:6px;padding:2px 7px;margin-bottom:8px;}
-  .pick{border:1px solid var(--line);background:transparent;color:var(--cream);
-    font-size:13px;padding:7px 12px;border-radius:9px;width:100%;}
-  .pick.on{background:var(--blue);border-color:var(--blue);color:#0d0d10;font-weight:600;}
-  .empty{padding:40px 20px;text-align:center;color:var(--muted);}
-  .empty svg{width:40px;height:40px;stroke:var(--muted);fill:none;stroke-width:1.4;margin-bottom:10px;}
-  .bar{position:fixed;left:0;right:0;bottom:0;padding:12px 18px calc(12px + env(safe-area-inset-bottom,0));
-    background:linear-gradient(180deg,transparent,var(--bg) 30%);
-    transform:translateY(120%);transition:transform .2s ease;}
-  .bar.show{transform:translateY(0);}
-  .bar button{width:100%;border:none;border-radius:12px;background:var(--cream);color:var(--bg);
-    font-size:15px;font-weight:700;padding:14px;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{background:var(--bg);color:var(--text);min-height:100%;
+    font-family:-apple-system,"SF Pro Text","Segoe UI",Roboto,sans-serif;-webkit-tap-highlight-color:transparent;}
+  body{padding:calc(12px + env(safe-area-inset-top,0)) 14px calc(180px + env(safe-area-inset-bottom,0));max-width:560px;margin:0 auto;}
+  button{font:inherit;color:inherit;border:none;background:none;cursor:pointer;}
+  svg{display:block;}
+
+  .hero{position:relative;overflow:hidden;border-radius:28px;min-height:196px;padding:18px;display:flex;flex-direction:column;
+    background:radial-gradient(circle at 85% 15%, rgba(255,122,61,.45), transparent 55%),
+               radial-gradient(circle at 5% 100%, rgba(90,162,255,.30), transparent 55%), #141417;}
+  .hero.plain{background:linear-gradient(160deg,#232327,#141417 70%);}
+  .hero .door{position:absolute;right:-18px;bottom:-14px;width:190px;opacity:.13;stroke:var(--text);fill:none;stroke-width:3;}
+  .hero.plain .door{right:14px;bottom:18px;width:96px;opacity:.28;}
+  .hero-top{display:flex;justify-content:space-between;align-items:center;position:relative;}
+  .brand{font-size:17px;font-weight:700;letter-spacing:.3px;}
+  .pillchip{font-size:13px;color:var(--muted);background:rgba(255,255,255,.08);padding:6px 12px;border-radius:999px;}
+  .round{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;}
+  .round svg{width:18px;height:18px;stroke:var(--text);fill:none;stroke-width:1.8;}
+  .hero-bottom{margin-top:auto;position:relative;}
+  .label{font-size:12px;font-weight:700;letter-spacing:1.2px;color:rgba(244,241,234,.65);text-transform:uppercase;}
+  .count{display:flex;align-items:center;gap:10px;margin-top:4px;}
+  .count b{font-size:44px;line-height:1;font-weight:800;}
+  .count span{font-size:18px;color:rgba(244,241,234,.6);font-weight:600;}
+  .hero-note{font-size:12px;color:rgba(244,241,234,.6);margin-top:8px;}
+
+  .chips{display:flex;gap:8px;overflow-x:auto;margin:14px -14px 12px;padding:0 14px;scrollbar-width:none;}
+  .chips::-webkit-scrollbar{display:none;}
+  .chip{flex:none;padding:9px 15px;border-radius:999px;background:var(--card);color:var(--muted);font-size:14px;font-weight:600;white-space:nowrap;}
+  .chip.active{background:var(--text);color:var(--bg);}
+
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .tile{position:relative;background:var(--card);border-radius:24px;padding:16px 14px 14px;min-height:172px;
+    display:flex;flex-direction:column;text-align:left;border:1.5px solid transparent;transition:transform .12s ease,border-color .15s ease;}
+  .tile:active{transform:scale(.97);}
+  .tile.on{border-color:var(--accent);}
+  .ico{flex:none;width:44px;height:44px;border-radius:14px;display:flex;align-items:center;justify-content:center;}
+  .ico svg{width:26px;height:26px;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;}
+  .add{position:absolute;top:12px;right:12px;width:30px;height:30px;border-radius:50%;background:var(--card2);display:flex;align-items:center;justify-content:center;}
+  .add svg{width:16px;height:16px;stroke:var(--text);fill:none;stroke-width:2.2;}
+  .tile.on .add{background:var(--accent);}
+  .tile.on .add svg{stroke:#140a05;}
+  .name{font-size:15px;font-weight:700;line-height:1.25;margin-top:14px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;}
+  .meta{margin-top:auto;padding-top:12px;}
+  .meta-row{display:flex;justify-content:space-between;align-items:baseline;}
+  .meta-row .st{font-size:14px;font-weight:700;}
+  .meta-row .d{font-size:11px;color:var(--muted);}
+  .bar{height:3px;border-radius:2px;background:var(--line);margin-top:8px;overflow:hidden;}
+  .bar i{display:block;height:100%;width:28%;background:var(--muted);border-radius:2px;transition:width .25s ease,background .25s ease;}
+  .tile.on .bar i{width:100%;background:var(--accent);}
+  .empty{grid-column:1/-1;background:var(--card);border-radius:24px;padding:34px 20px;text-align:center;color:var(--muted);font-size:14px;line-height:1.5;}
+
+  /* history */
+  .month{display:flex;justify-content:space-between;color:var(--muted);font-size:13px;margin:18px 4px 8px;}
+  .month b{font-weight:600;color:#b9b6ae;}
+  .hrow{display:flex;align-items:center;gap:12px;background:var(--card);border-radius:22px;padding:14px;margin-bottom:8px;}
+  .hrow .body{flex:1;min-width:0;}
+  .hrow .t{font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .hrow .t small{color:var(--muted);font-weight:600;font-size:13px;}
+  .tags{display:flex;gap:6px;align-items:center;margin-top:6px;}
+  .tags .tg{font-size:12px;color:#c9c6bf;background:var(--card2);padding:3px 8px;border-radius:7px;}
+  .tags .num{font-size:12px;color:var(--muted);}
+  .status{flex:none;font-size:13px;font-weight:700;padding:6px 10px;border-radius:10px;}
+  .s-n{color:var(--accent);background:rgba(255,122,61,.12);}
+  .s-d{color:var(--green);background:rgba(76,195,138,.12);}
+  .s-c{color:var(--muted);background:var(--card2);}
+  .hint{text-align:center;color:var(--muted);font-size:12px;margin-top:12px;line-height:1.4;}
+  .ghost{display:block;margin:14px auto 0;padding:11px 18px;border-radius:14px;background:var(--card2);font-size:14px;font-weight:700;}
+
+  h2{font-size:24px;font-weight:800;margin:6px 2px 14px;}
+  .info{background:var(--card);border-radius:22px;padding:16px;margin-bottom:10px;}
+  .info h3{font-size:15px;font-weight:800;margin-bottom:8px;}
+  .info p{font-size:14px;color:#c9c6bf;line-height:1.55;}
+  .footer{text-align:center;color:var(--muted);font-size:13px;margin-top:22px;}
+
+  /* sheet */
+  .shade{position:fixed;inset:0;background:rgba(0,0,0,.55);opacity:0;pointer-events:none;transition:opacity .2s;z-index:20;}
+  .shade.show{opacity:1;pointer-events:auto;}
+  .sheet{position:fixed;left:max(0px, calc(50% - 280px));right:max(0px, calc(50% - 280px));bottom:0;z-index:21;background:#161619;border-radius:28px 28px 0 0;max-height:85vh;overflow-y:auto;
+    padding:10px 18px calc(22px + env(safe-area-inset-bottom,0));transform:translateY(105%);transition:transform .25s ease;}
+  .sheet.show{transform:translateY(0);}
+  .grab{width:40px;height:4px;border-radius:2px;background:var(--line);margin:0 auto 16px;}
+  .sheet .big{width:56px;height:56px;border-radius:18px;}
+  .sheet .big svg{width:32px;height:32px;}
+  .sheet h4{font-size:20px;font-weight:800;margin:14px 0 8px;line-height:1.25;}
+  .sheet p{font-size:15px;color:#c9c6bf;line-height:1.5;}
+  .tag{display:inline-block;margin-top:12px;font-size:12px;color:var(--muted);background:var(--card2);padding:5px 10px;border-radius:8px;}
+  .row{display:flex;align-items:center;gap:12px;background:var(--card);border-radius:20px;padding:12px;margin-bottom:8px;}
+  .row .t{flex:1;font-size:15px;font-weight:600;line-height:1.3;}
+  .row .x{width:32px;height:32px;border-radius:50%;background:var(--card2);display:flex;align-items:center;justify-content:center;}
+  .row .x svg{width:14px;height:14px;stroke:var(--muted);fill:none;stroke-width:2.4;}
+  .primary{width:100%;margin-top:12px;padding:16px;border-radius:18px;background:var(--text);color:var(--bg);font-size:16px;font-weight:800;}
+
+  /* floating cart bar */
+  .cartbar{position:fixed;left:var(--side);right:var(--side);bottom:calc(92px + env(safe-area-inset-bottom,0));z-index:9;
+    display:flex;justify-content:space-between;align-items:center;padding:15px 18px;border-radius:20px;
+    background:var(--accent);color:#140a05;font-weight:800;font-size:15px;
+    opacity:0;visibility:hidden;pointer-events:none;transform:translateY(16px);
+    transition:transform .2s ease,opacity .2s ease,visibility .2s;}
+  .cartbar.show{opacity:1;visibility:visible;pointer-events:auto;transform:none;}
+
+  .nav{position:fixed;left:var(--side);right:var(--side);bottom:calc(14px + env(safe-area-inset-bottom,0));display:flex;gap:10px;z-index:10;}
+  .pill{flex:1;display:flex;background:#1c1c20;border-radius:999px;padding:6px;}
+  .pill button,.solo{position:relative;flex:1;height:52px;border-radius:999px;display:flex;align-items:center;justify-content:center;}
+  .pill button.active{background:rgba(255,255,255,.1);}
+  .pill svg,.solo svg{width:22px;height:22px;stroke:var(--muted);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+  .pill button.active svg{stroke:var(--text);}
+  .solo{flex:none;width:64px;height:64px;background:#1c1c20;}
+  .badge{position:absolute;top:8px;right:calc(50% - 22px);min-width:18px;height:18px;padding:0 5px;border-radius:9px;
+    background:var(--accent);color:#140a05;font-size:11px;font-weight:800;display:none;align-items:center;justify-content:center;}
+  .badge.show{display:flex;}
 </style>
 </head>
 <body>
 
-<header>
-  <h1>Гараж</h1>
-  <p class="note">Всё под заказ · сроки 3–14 дней · цену подтвердим после заявки</p>
-</header>
+<div id="view"></div>
+<div class="footer">@Garage_2026_bot</div>
 
-<nav id="tabs"></nav>
-<main id="list"></main>
-<div class="bar" id="bar"><button id="sendBtn">Отправить заявку</button></div>
+<button class="cartbar" id="cartbar"><span>Оформить заявку</span><span id="cartcount">0</span></button>
+<div class="shade" id="shade"></div>
+<div class="sheet" id="sheet"></div>
+
+<nav class="nav">
+  <div class="pill">
+    <button data-view="catalog" class="active" aria-label="Каталог">
+      <svg viewBox="0 0 24 24"><path d="M5 8h14l-1 12H6L5 8Z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>
+      <span class="badge" id="badge">0</span>
+    </button>
+    <button data-view="history" aria-label="Мои заявки">
+      <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="5" rx="1.5"/><path d="M5 9v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9"/><path d="m9 14 2 2 4-4"/></svg>
+    </button>
+    <button data-view="info" aria-label="Информация">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.01"/></svg>
+    </button>
+  </div>
+  <button class="solo" id="supportBtn" aria-label="Поддержка">
+    <svg viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4V5Z"/><path d="M8 10h8M8 13h5"/></svg>
+  </button>
+</nav>
 
 <script>
+const tg = window.Telegram && window.Telegram.WebApp;
+
 const ICONS = {
-  plug: '<svg viewBox="0 0 24 24"><path d="M9 2v6M15 2v6M6 8h12l-1 6a5 5 0 0 1-10 0L6 8Z"/><path d="M12 18v4"/></svg>',
-  scan: '<svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M7 10h.01M11 10h6M7 14h10"/></svg>',
-  spray: '<svg viewBox="0 0 24 24"><path d="M8 3h4l1 3H7l1-3Z"/><path d="M9 6v3H7a2 2 0 0 0-2 2v9h8v-9a2 2 0 0 0-2-2h-2"/><path d="M16 8h3M16 11h4M16 14h3"/></svg>',
-  tire: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.4"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/></svg>',
-  empty: '<svg viewBox="0 0 24 24"><path d="M4 7h16l-1.5 12h-13L4 7Z"/><path d="M9 7V5a3 3 0 0 1 6 0v2"/></svg>'
+  plug:  '<path d="M9 2v6M15 2v6M6 8h12l-1 6a5 5 0 0 1-10 0L6 8Z"/><path d="M12 18v4"/>',
+  scan:  '<rect x="3" y="6" width="18" height="12" rx="2"/><path d="M7 10h.01M11 10h6M7 14h10"/>',
+  spray: '<path d="M8 3h4l1 3H7l1-3Z"/><path d="M9 6v3H7a2 2 0 0 0-2 2v9h8v-9a2 2 0 0 0-2-2h-2"/><path d="M16 8h3M16 11h4M16 14h3"/>',
+  drop:  '<path d="M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11Z"/><path d="M9.5 14.5a2.5 2.5 0 0 0 2.5 2.5"/>',
+  shine: '<path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M18 6l-2.5 2.5M8.5 15.5 6 18"/>',
+  wheel: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.4"/><path d="M12 3v5.6M12 15.4V21M3 12h5.6M15.4 12H21"/>',
+  box:   '<path d="M4 8 12 4l8 4v8l-8 4-8-4V8Z"/><path d="m4 8 8 4 8-4M12 12v8"/>',
 };
 
 const CATEGORIES = [
-  {
-    id: "diag", label: "Диагностика",
-    items: [
-      { id:"carplay", icon:"plug", name:"Адаптер CarPlay",
-        desc:"Беспроводной CarPlay / Android Auto." },
-      { id:"elm327_basic", icon:"scan", name:"OBD-сканер ELM327",
-        desc:"Диагностика неисправностей через телефон." },
-      { id:"elm327_wifi", icon:"scan", name:"Автосканер ELM327 Wi-Fi OBD2",
-        desc:"Версия 1.5 (PIC18F25K80), для iPhone и Android." },
-    ]
-  },
-  { id:"chem", label:"Автохимия", items:[
-      { id:"superstar", icon:"spray", name:"Shine Systems SuperStar",
-        desc:"Активный шампунь для 1-й фазы (бесконтактная мойка). Самый мощный по отмыванию в линейке." },
-      { id:"cationic", icon:"spray", name:"Shine Systems CationicShampoo",
-        desc:"Катионный шампунь для 2-й фазы (ручная мойка). Гидрофобный эффект и блеск после смывки — один из самых спрашиваемых." },
-      { id:"bitumoff", icon:"spray", name:"Shine Systems BitumOFF",
-        desc:"Терпеновый антибитум. Убирает битумные пятна, смолу и следы насекомых с кузова." },
-      { id:"ironoff", icon:"tire", name:"Shine Systems IronOFF",
-        desc:"Бескислотный очиститель дисков с индикатором — краснеет при реакции с металлической пылью. Часто берут вместе с BitumOFF." },
-      { id:"glossprotection", icon:"spray", name:"Shine Systems GlossProtection",
-        desc:"Наноконсервант для 3-й фазы — быстрая сушка, блеск и лёгкий гидрофоб." },
-      { id:"quickdetailer", icon:"spray", name:"Shine Systems QuickDetailer",
-        desc:"Спрей быстрого блеска между полными мойками." },
-  ] },
-  { id:"tires", label:"Шины", items:[] },
+  { id:"diag", label:"Диагностика", color:"#5aa2ff", items:[
+    { id:"carplay", icon:"plug", name:"Адаптер CarPlay", desc:"Беспроводной CarPlay / Android Auto." },
+    { id:"elm327_basic", icon:"scan", name:"OBD-сканер ELM327", desc:"Диагностика неисправностей через телефон." },
+    { id:"elm327_wifi", icon:"scan", name:"Автосканер ELM327 Wi-Fi OBD2", desc:"Версия 1.5 (PIC18F25K80), для iPhone и Android." },
+  ]},
+  { id:"chem", label:"Автохимия", color:"#ff7a3d", items:[
+    { id:"superstar", icon:"spray", name:"Shine Systems SuperStar", desc:"Активный шампунь для 1-й фазы (бесконтактная мойка). Самый мощный по отмыванию в линейке." },
+    { id:"cationic", icon:"drop", name:"Shine Systems CationicShampoo", desc:"Катионный шампунь для 2-й фазы (ручная мойка). Гидрофобный эффект и блеск после смывки." },
+    { id:"bitumoff", icon:"spray", name:"Shine Systems BitumOFF", desc:"Терпеновый антибитум. Убирает битумные пятна, смолу и следы насекомых с кузова." },
+    { id:"ironoff", icon:"wheel", name:"Shine Systems IronOFF", desc:"Бескислотный очиститель дисков с индикатором — краснеет при реакции с металлической пылью." },
+    { id:"glossprotection", icon:"shine", name:"Shine Systems GlossProtection", desc:"Наноконсервант для 3-й фазы — быстрая сушка, блеск и лёгкий гидрофоб." },
+    { id:"quickdetailer", icon:"shine", name:"Shine Systems QuickDetailer", desc:"Спрей быстрого блеска между полными мойками." },
+  ]},
+  { id:"tires", label:"Шины", color:"#4cc38a", items:[] },
 ];
+const ITEM_INDEX = {};
+CATEGORIES.forEach(c => c.items.forEach(it => ITEM_INDEX[it.id] = { ...it, color:c.color }));
 
-let active = CATEGORIES[0].id;
-const selected = new Map();
-
-function renderTabs(){
-  document.getElementById("tabs").innerHTML = CATEGORIES.map(c =>
-    `<button class="tab${c.id===active?" active":""}" data-cat="${c.id}">${c.label}</button>`
-  ).join("");
+// История заявок приходит от бота в параметре ?h=... (base64url JSON: [[номер,"ГГГГ-ММ-ДД","n|d|c","id1,id2"], ...])
+function readHistory(){
+  try{
+    const h = new URLSearchParams(location.search).get("h");
+    if(!h) return [];
+    let b = h.replace(/-/g,"+").replace(/_/g,"/"); while(b.length % 4) b += "=";
+    const bytes = Uint8Array.from(atob(b), ch => ch.charCodeAt(0));
+    const arr = JSON.parse(new TextDecoder().decode(bytes));
+    return arr.map(r => ({ num:r[0], date:new Date(r[1]+"T12:00:00"), status:r[2], ids:(r[3]||"").split(",").filter(Boolean) }));
+  }catch(e){ return []; }
 }
+const HISTORY = readHistory();
 
-function renderList(){
-  const cat = CATEGORIES.find(c => c.id === active);
-  const list = document.getElementById("list");
-  if(!cat.items.length){
-    list.innerHTML = `<div class="empty">${ICONS.empty}<div>Пока пусто — уже подбираем поставщиков для этой категории.</div></div>`;
-    return;
-  }
-  list.innerHTML = cat.items.map(it => `
-    <div class="card">
-      <div class="icon">${ICONS[it.icon]}</div>
-      <div class="body">
-        <p class="name">${it.name}</p>
-        <p class="desc">${it.desc}</p>
-        <div class="badge">Под заказ · 3–14 дней</div>
-        <button class="pick${selected.has(it.id)?" on":""}" data-id="${it.id}" data-name="${it.name}">
-          ${selected.has(it.id) ? "✓ В заявке" : "+ В заявку"}
-        </button>
-      </div>
+const state = { view:"catalog", cat:CATEGORIES[0].id, selected:new Set(), sheet:null };
+
+const MONTHS = ["Январь","Февраль","Март","Апрель","Май","Июнь","Июль","Август","Сентябрь","Октябрь","Ноябрь","Декабрь"];
+const MSHORT = ["янв","фев","мар","апр","мая","июн","июл","авг","сен","окт","ноя","дек"];
+function plural(n, one, few, many){
+  const m10=n%10, m100=n%100;
+  if(m10===1 && m100!==11) return one;
+  if(m10>=2 && m10<=4 && (m100<10||m100>=20)) return few;
+  return many;
+}
+function icon(it, cls=""){
+  const c = it ? it.color : "#8d8b85", p = it ? ICONS[it.icon] : ICONS.box;
+  return `<div class="ico ${cls}" style="background:${c}1f"><svg viewBox="0 0 24 24" style="stroke:${c}">${p}</svg></div>`;
+}
+function haptic(){ try{ tg && tg.HapticFeedback && tg.HapticFeedback.impactOccurred("light"); }catch(e){} }
+
+/* ---------- views ---------- */
+function catalogHTML(){
+  const n = state.selected.size, cat = CATEGORIES.find(c => c.id === state.cat);
+  const hero = `
+  <div class="hero">
+    <svg class="door" viewBox="0 0 100 80"><path d="M6 30 50 6l44 24"/><rect x="16" y="30" width="68" height="46" rx="2"/><path d="M16 42h68M16 54h68M16 66h68"/></svg>
+    <div class="hero-top"><div class="brand">Гараж</div>
+      <button class="round" data-view="info" aria-label="Информация"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.01"/></svg></button></div>
+    <div class="hero-bottom">
+      <div class="label">В заявке</div>
+      <div class="count"><b>${n}</b><span>${plural(n,"позиция","позиции","позиций")}</span>
+        <button class="round" data-cart aria-label="Открыть заявку"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></div>
+      <div class="hero-note">Всё под заказ · 3–14 дней · цену подтвердим после заявки</div>
     </div>
-  `).join("");
+  </div>`;
+  const chips = CATEGORIES.map(c => `<button class="chip${c.id===state.cat?" active":""}" data-cat="${c.id}">${c.label}</button>`).join("");
+  const tiles = cat.items.length ? cat.items.map(raw => {
+    const it = ITEM_INDEX[raw.id], on = state.selected.has(it.id);
+    return `<div class="tile${on?" on":""}" data-open="${it.id}">${icon(it)}
+      <button class="add" data-toggle="${it.id}" aria-label="В заявку"><svg viewBox="0 0 24 24">${on?'<path d="m5 12 5 5 9-10"/>':'<path d="M12 5v14M5 12h14"/>'}</svg></button>
+      <div class="name">${it.name}</div>
+      <div class="meta"><div class="meta-row"><span class="st">${on?"В заявке":"Под заказ"}</span><span class="d">3–14 дн</span></div><div class="bar"><i></i></div></div>
+    </div>`;
+  }).join("") : `<div class="empty">Пока пусто — уже подбираем поставщиков для этой категории.<br>Нужно что-то конкретное — напишите в поддержку.</div>`;
+  return hero + `<div class="chips">${chips}</div><div class="grid">${tiles}</div>`;
 }
 
-function renderBar(){
-  const n = selected.size;
-  const bar = document.getElementById("bar");
-  bar.classList.toggle("show", n > 0);
-  document.getElementById("sendBtn").textContent =
-    n > 0 ? `Отправить заявку (${n})` : "Отправить заявку";
+function historyHTML(){
+  const total = HISTORY.length, active = HISTORY.filter(r => r.status === "n").length;
+  const hero = `
+  <div class="hero plain">
+    <svg class="door" viewBox="0 0 100 80"><path d="M6 30 50 6l44 24"/><rect x="16" y="30" width="68" height="46" rx="2"/><path d="M16 42h68M16 54h68M16 66h68"/></svg>
+    <div class="hero-top"><div class="brand">Мои заявки</div><span class="pillchip">${total} ${plural(total,"заявка","заявки","заявок")}</span></div>
+    <div class="hero-bottom"><div class="label">В работе</div><div class="count"><b>${active}</b></div></div>
+  </div>`;
+  if(!total) return hero + `<div class="empty" style="margin-top:14px">Заявок пока нет.<br>Выберите товары в каталоге и отправьте первую заявку.<button class="ghost" data-view="catalog">Открыть каталог</button></div>`;
+
+  const groups = [];
+  HISTORY.forEach(r => {
+    const key = r.date.getFullYear() + "-" + r.date.getMonth();
+    let g = groups.find(x => x.key === key);
+    if(!g){ g = { key, title:MONTHS[r.date.getMonth()] + " " + r.date.getFullYear(), rows:[] }; groups.push(g); }
+    g.rows.push(r);
+  });
+  const ST = { n:["В работе","s-n"], d:["Готово","s-d"], c:["Отменена","s-c"] };
+  const body = groups.map(g => {
+    const rows = g.rows.map(r => {
+      const first = ITEM_INDEX[r.ids[0]];
+      const title = first ? first.name : "Заявка";
+      const more = r.ids.length > 1 ? ` <small>+${r.ids.length-1}</small>` : "";
+      const [stText, stCls] = ST[r.status] || ST.n;
+      return `<div class="hrow">${icon(first)}
+        <div class="body"><div class="t">${title}${more}</div>
+          <div class="tags"><span class="tg">${r.date.getDate()} ${MSHORT[r.date.getMonth()]}</span><span class="num">№${r.num}</span></div></div>
+        <span class="status ${stCls}">${stText}</span></div>`;
+    }).join("");
+    return `<div class="month"><span>${g.title}</span><b>${g.rows.length} ${plural(g.rows.length,"заявка","заявки","заявок")}</b></div>${rows}`;
+  }).join("");
+  return hero + body + `<div class="hint">Статусы обновляются, когда бот присылает новое сообщение.<br>Чтобы обновить вручную — отправьте боту /start.</div>`;
 }
 
-document.getElementById("tabs").addEventListener("click", e => {
-  const b = e.target.closest(".tab");
-  if(!b) return;
-  active = b.dataset.cat;
-  renderTabs(); renderList();
-});
+function infoHTML(){
+  const block = (t, p) => `<div class="info"><h3>${t}</h3><p>${p}</p></div>`;
+  return `<h2>Информация</h2>` +
+    block("Как это работает", "Выбираете товары и отправляете заявку. Мы находим их у проверенных поставщиков и сообщаем цену и срок. После вашего согласия — оформляем заказ.") +
+    block("Поиск по VIN", "Нужна конкретная запчасть? Нажмите «⚙️ Поиск по VIN» в меню бота — подберём бесплатно.") +
+    block("Оплата", "Наличные при получении или предоплата 50% переводом.") +
+    block("Доставка по городу", "Самовывоз — бесплатно. Доставка — 300 ₽, бесплатно при заказе от 5000 ₽.") +
+    block("Гарантия и возврат", "Гарантия 14 дней. Брак — замена или полный возврат за наш счёт. Не подошло — возврат в течение 14 дней, доставку оплачивает клиент.") +
+    block("Время работы", "Пн–сб, 10:00–20:00");
+}
 
-document.getElementById("list").addEventListener("click", e => {
-  const b = e.target.closest(".pick");
-  if(!b) return;
-  const id = b.dataset.id, name = b.dataset.name;
-  if(selected.has(id)) selected.delete(id); else selected.set(id, name);
-  renderList(); renderBar();
-});
+/* ---------- sheet ---------- */
+function itemSheet(id){
+  const it = ITEM_INDEX[id], on = state.selected.has(id);
+  return `<div class="grab"></div>${icon(it,"big")}<h4>${it.name}</h4><p>${it.desc}</p><span class="tag">Под заказ · 3–14 дней</span>
+    <button class="primary" data-sheet-toggle="${id}">${on?"Убрать из заявки":"Добавить в заявку"}</button>`;
+}
+function cartSheet(){
+  const ids = [...state.selected];
+  if(!ids.length) return `<div class="grab"></div><h4>Заявка пустая</h4><p>Добавьте товары из каталога кнопкой «+».</p>`;
+  const rows = ids.map(id => { const it = ITEM_INDEX[id];
+    return `<div class="row">${icon(it)}<div class="t">${it.name}</div>
+      <button class="x" data-toggle="${id}" aria-label="Убрать"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>`; }).join("");
+  return `<div class="grab"></div><h4>Ваша заявка</h4>${rows}
+    <button class="primary" id="sendBtn">Отправить заявку (${ids.length})</button>
+    <div class="hint">Менеджер посчитает цену и срок и напишет вам в Telegram.</div>`;
+}
+function openSheet(kind, id){
+  state.sheet = { kind, id };
+  document.getElementById("sheet").innerHTML = kind === "cart" ? cartSheet() : itemSheet(id);
+  document.getElementById("sheet").classList.add("show");
+  document.getElementById("shade").classList.add("show");
+}
+function closeSheet(){
+  state.sheet = null;
+  document.getElementById("sheet").classList.remove("show");
+  document.getElementById("shade").classList.remove("show");
+}
 
-document.getElementById("sendBtn").addEventListener("click", () => {
-  if(!selected.size) return;
-  const items = [...selected.entries()].map(([id, name]) => ({ id, name }));
-  const payload = JSON.stringify({ items });
-  if(window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.sendData){
-    window.Telegram.WebApp.sendData(payload);
-    window.Telegram.WebApp.close();
+/* ---------- render ---------- */
+function render(){
+  const v = state.view;
+  document.getElementById("view").innerHTML = v === "catalog" ? catalogHTML() : v === "history" ? historyHTML() : infoHTML();
+  document.querySelectorAll(".pill button").forEach(b => b.classList.toggle("active", b.dataset.view === v));
+  const n = state.selected.size;
+  const badge = document.getElementById("badge"); badge.textContent = n; badge.classList.toggle("show", n > 0);
+  document.getElementById("cartcount").textContent = n + " " + plural(n,"позиция","позиции","позиций");
+  document.getElementById("cartbar").classList.toggle("show", n > 0 && v === "catalog");
+  if(state.sheet && state.sheet.kind === "cart") document.getElementById("sheet").innerHTML = cartSheet();
+}
+function toggle(id){
+  if(state.selected.has(id)) state.selected.delete(id); else state.selected.add(id);
+  haptic(); render();
+}
+function sendRequest(){
+  if(!state.selected.size) return;
+  const items = [...state.selected].map(id => ({ id, name:ITEM_INDEX[id].name }));
+  if(tg && tg.sendData && tg.initData !== undefined){
+    tg.sendData(JSON.stringify({ items }));
+    tg.close();
   } else {
-    alert("Открой этот каталог через кнопку в боте, чтобы отправить заявку:\n\n" +
-      items.map(i => "• " + i.name).join("\n"));
+    alert("Откройте каталог через кнопку «🛍 Каталог» в боте, чтобы отправить заявку:\n\n" + items.map(i => "• " + i.name).join("\n"));
+  }
+}
+
+document.addEventListener("click", e => {
+  const t = e.target;
+  const tog = t.closest("[data-toggle]");
+  if(tog){ e.stopPropagation(); toggle(tog.dataset.toggle); return; }
+  const st = t.closest("[data-sheet-toggle]");
+  if(st){ toggle(st.dataset.sheetToggle); closeSheet(); return; }
+  if(t.closest("#sendBtn")){ sendRequest(); return; }
+  if(t.closest("[data-cart]") || t.closest("#cartbar")){ openSheet("cart"); return; }
+  const chip = t.closest("[data-cat]");
+  if(chip){ state.cat = chip.dataset.cat; haptic(); render(); return; }
+  const nav = t.closest("[data-view]");
+  if(nav){ state.view = nav.dataset.view; closeSheet(); render(); window.scrollTo(0,0); return; }
+  const open = t.closest("[data-open]");
+  if(open){ openSheet("item", open.dataset.open); return; }
+  if(t.id === "shade"){ closeSheet(); return; }
+  if(t.closest("#supportBtn")){
+    const url = "https://t.me/GarageSupport";
+    if(tg && tg.openTelegramLink) tg.openTelegramLink(url); else window.open(url, "_blank");
   }
 });
 
-if(window.Telegram && window.Telegram.WebApp){
-  window.Telegram.WebApp.ready();
-  window.Telegram.WebApp.expand();
-}
-
-renderTabs();
-renderList();
-renderBar();
+if(tg){ tg.ready(); tg.expand(); try{ tg.setHeaderColor("#0a0a0c"); tg.setBackgroundColor("#0a0a0c"); }catch(e){} }
+render();
 </script>
 </body>
 </html>
