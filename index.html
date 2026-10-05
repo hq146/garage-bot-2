@@ -76,6 +76,7 @@
   .tags .num{font-size:12px;color:var(--muted);}
   .status{flex:none;font-size:13px;font-weight:700;padding:6px 10px;border-radius:10px;}
   .s-n{color:var(--accent);background:rgba(255,122,61,.12);}
+  .s-a{color:var(--bg);background:var(--green);}
   .s-d{color:var(--green);background:rgba(76,195,138,.12);}
   .s-c{color:var(--muted);background:var(--card2);}
   .hint{text-align:center;color:var(--muted);font-size:12px;margin-top:12px;line-height:1.4;}
@@ -793,7 +794,7 @@ function brandSheet(bi){
 }
 
 function historyHTML(){
-  const total = HISTORY.length, active = HISTORY.filter(r => r.status === "n").length;
+  const total = HISTORY.length, active = HISTORY.filter(r => "noa".includes(r.status)).length;
   const hero = `
   <div class="hero plain">
     ${heroArt()}
@@ -809,7 +810,7 @@ function historyHTML(){
     if(!g){ g = { key, title:MONTHS[r.date.getMonth()] + " " + r.date.getFullYear(), rows:[] }; groups.push(g); }
     g.rows.push(r);
   });
-  const ST = { n:["В работе","s-n"], d:["Готово","s-d"], c:["Отменена","s-c"] };
+  const ST = { n:["Новая","s-n"], o:["Заказан","s-n"], a:["Можно забирать","s-a"], d:["Выдан","s-d"], c:["Отменена","s-c"] };
   const body = groups.map(g => {
     const rows = g.rows.map(r => {
       const first = r.ids[0] === "vin" ? VIN_ITEM : r.ids[0] === "tirereq" ? TIREREQ_ITEM : ITEM_INDEX[r.ids[0]];
@@ -823,7 +824,7 @@ function historyHTML(){
     }).join("");
     return `<div class="month"><span>${g.title}</span><b>${g.rows.length} ${plural(g.rows.length,"заявка","заявки","заявок")}</b></div>${rows}`;
   }).join("");
-  return hero + body + `<div class="hint">Статусы обновляются, когда бот присылает новое сообщение.<br>Чтобы обновить вручную — отправьте боту /start.</div>`;
+  return hero + body + `<div class="hint">Как только статус заказа меняется, бот присылает вам сообщение.<br>Чтобы обновить вручную — отправьте боту /start.</div>`;
 }
 
 /* ---------- VIN ---------- */
