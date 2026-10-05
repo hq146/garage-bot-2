@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Гараж — каталог</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Roboto+Slab:wght@600;800&family=Russo+One&display=swap" rel="stylesheet">
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
   :root{
@@ -41,7 +43,7 @@
   .chip{flex:none;padding:9px 15px;border-radius:999px;background:var(--card);color:var(--muted);font-size:14px;font-weight:600;white-space:nowrap;}
   .chip.active{background:var(--text);color:var(--bg);}
 
-  .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}
   .tile{position:relative;background:var(--card);border-radius:24px;padding:16px 14px 14px;min-height:172px;
     display:flex;flex-direction:column;text-align:left;border:1.5px solid transparent;transition:transform .12s ease,border-color .15s ease;}
   .tile:active{transform:scale(.97);}
@@ -52,7 +54,7 @@
   .add svg{width:16px;height:16px;stroke:var(--text);fill:none;stroke-width:2.2;}
   .tile.on .add{background:var(--accent);}
   .tile.on .add svg{stroke:#140a05;}
-  .name{font-size:15px;font-weight:700;line-height:1.25;margin-top:14px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;}
+  .name{font-size:15px;font-weight:700;line-height:1.25;margin-top:14px;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;}
   .meta{margin-top:auto;padding-top:12px;}
   .meta-row{display:flex;justify-content:space-between;align-items:baseline;}
   .meta-row .st{font-size:14px;font-weight:700;}
@@ -84,6 +86,254 @@
   .info h3{font-size:15px;font-weight:800;margin-bottom:8px;}
   .info p{font-size:14px;color:#c9c6bf;line-height:1.55;}
   .footer{text-align:center;color:var(--muted);font-size:13px;margin-top:22px;}
+
+  /* VIN promo tile */
+  .vinpromo{display:flex;align-items:center;gap:14px;width:100%;margin-top:10px;background:var(--card);border-radius:24px;padding:16px;text-align:left;}
+  .vinpromo:active{transform:scale(.98);}
+  .vinpromo .body{flex:1;}
+  .vinpromo b{display:block;font-size:16px;font-weight:800;}
+  .vinpromo span{font-size:13px;color:var(--muted);}
+  .vinpromo .free{flex:none;font-size:12px;font-weight:800;color:var(--green);background:rgba(76,195,138,.12);padding:6px 10px;border-radius:10px;}
+
+  /* VIN view */
+  .topbar{display:flex;align-items:center;gap:12px;margin:2px 0 14px;}
+  .topbar .back{width:40px;height:40px;border-radius:50%;background:var(--card);display:flex;align-items:center;justify-content:center;}
+  .topbar .back svg{width:18px;height:18px;stroke:var(--text);fill:none;stroke-width:2;}
+  .topbar h2{margin:0;}
+  .steps{display:flex;gap:8px;margin-top:16px;position:relative;}
+  .steps div{flex:1;background:rgba(255,255,255,.07);border-radius:14px;padding:10px;font-size:12px;color:#c9c6bf;line-height:1.35;}
+  .steps b{display:block;font-size:18px;color:var(--text);margin-bottom:2px;}
+  .form{background:var(--card);border-radius:24px;padding:16px;margin-top:10px;}
+  .flabel{display:flex;justify-content:space-between;align-items:baseline;font-size:12px;font-weight:700;letter-spacing:1px;
+    text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
+  .flabel .cnt{letter-spacing:0;font-size:13px;}
+  .flabel .cnt.ok{color:var(--green);}
+  .vin{width:100%;background:var(--card2);border:1.5px solid transparent;border-radius:16px;padding:15px 14px;color:var(--text);
+    font:700 19px/1.2 ui-monospace,"SF Mono",Menlo,Consolas,monospace;letter-spacing:2px;text-transform:uppercase;outline:none;}
+  .vin:focus{border-color:var(--line);}
+  .vin.ok{border-color:var(--green);}
+  .vin.bad{border-color:#e5484d;}
+  .err{min-height:18px;font-size:13px;color:#e5484d;margin-top:6px;}
+  .help{margin-top:2px;font-size:13px;color:var(--blue);font-weight:600;}
+  .helpbox{display:none;margin-top:10px;background:var(--card2);border-radius:14px;padding:12px;font-size:13px;color:#c9c6bf;line-height:1.55;}
+  .helpbox.show{display:block;}
+  .part{width:100%;min-height:84px;resize:none;background:var(--card2);border:1.5px solid transparent;border-radius:16px;padding:13px 14px;
+    color:var(--text);font:500 16px/1.4 inherit;font-family:inherit;outline:none;}
+  .part:focus{border-color:var(--line);}
+  .quick{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;}
+  .quick button{font-size:13px;font-weight:600;color:#c9c6bf;background:var(--card2);padding:7px 11px;border-radius:999px;}
+  .primary:disabled{opacity:.35;}
+
+
+  /* ================== ТЕМЫ МАГАЗИНА ================== */
+  .hero,.brand,h2,.name,.count b,.vinpromo b,.sheet h4,.primary,.cartbar{font-family:var(--head);}
+
+
+  /* 0. ФИРМЕННАЯ «ГАРАЖ» — цвета логотипа: графит #1a1d21 + крем #ece8dc, узкий шрифт, двойное кольцо */
+  body[data-theme="garage"]{--bg:#121417;--card:#1b1e22;--card2:#262a2f;--line:#31363c;--text:#ece8dc;--muted:#8f8b80;
+    --accent:#ece8dc;--on-accent:#1a1d21;--green:#9fcfae;--head:"Oswald","DejaVu Sans Condensed","Arial Narrow",sans-serif;}
+  [data-theme="garage"] .hero,[data-theme="garage"] .hero.plain{background:#1a1d21;
+    box-shadow:inset 0 0 0 1.5px rgba(236,232,220,.85), inset 0 0 0 7px #1a1d21, inset 0 0 0 8.5px rgba(236,232,220,.3);}
+  [data-theme="garage"] .hero .logo{position:absolute;right:16px;bottom:16px;width:112px;height:112px;}
+  [data-theme="garage"] .hero .door{display:none;}
+  [data-theme="garage"] .hero-bottom{max-width:calc(100% - 122px);}
+  [data-theme="garage"] .brand{text-transform:uppercase;letter-spacing:3px;font-size:19px;}
+  [data-theme="garage"] .brand::before{content:"– ";opacity:.6;}
+  [data-theme="garage"] .brand::after{content:" –";opacity:.6;}
+  [data-theme="garage"] .count b{font-size:54px;font-weight:700;}
+  [data-theme="garage"] .name,[data-theme="garage"] .chip,[data-theme="garage"] .label,[data-theme="garage"] .flabel,
+  [data-theme="garage"] .cartbar,[data-theme="garage"] .primary,[data-theme="garage"] h2,[data-theme="garage"] .vinpromo b{
+    font-family:var(--head);text-transform:uppercase;letter-spacing:.8px;}
+  [data-theme="garage"] .name{font-weight:600;font-size:16px;letter-spacing:.4px;}
+  [data-theme="garage"] .chip{border:1px solid var(--line);}
+  [data-theme="garage"] .ico{background:var(--card2)!important;}
+  [data-theme="garage"] .ico svg{stroke:var(--text)!important;}
+  [data-theme="garage"] .tile.on{border-color:var(--text);}
+  [data-theme="garage"] .vinpromo .free{color:var(--text);background:transparent;border:1px solid rgba(236,232,220,.5);}
+  [data-theme="garage"] .s-n{color:var(--text);background:transparent;border:1px solid rgba(236,232,220,.45);}
+  [data-theme="garage"] .pill,[data-theme="garage"] .solo{background:#1a1d21;box-shadow:inset 0 0 0 1px rgba(236,232,220,.16);}
+  [data-theme="garage"] .pill button.active{background:rgba(236,232,220,.1);}
+  [data-theme="garage"] .cartbar{box-shadow:0 0 0 4px var(--bg),0 12px 30px rgba(0,0,0,.6);}
+  [data-theme="garage"] .help{color:var(--text);text-decoration:underline;text-underline-offset:3px;}
+  html,body{overflow-x:hidden;}
+
+  /* 1. МАСТЕРСКАЯ — графит + сигнальный жёлтый, как разметка в автосервисе */
+  body[data-theme="workshop"]{--bg:#111111;--card:#1c1c1c;--card2:#292929;--line:#343434;--text:#f2f2f2;--muted:#999;
+    --accent:#ffc629;--on-accent:#111;--head:"Oswald","DejaVu Sans Condensed","Arial Narrow",sans-serif;}
+  [data-theme="workshop"] .hero{border-radius:16px;background:#1c1c1c;padding-bottom:34px;}
+  [data-theme="workshop"] .hero::after{content:"";position:absolute;left:0;right:0;bottom:0;height:16px;
+    background:repeating-linear-gradient(-45deg,#ffc629 0 14px,#111 14px 28px);}
+  [data-theme="workshop"] .hero .door{opacity:.09;}
+  [data-theme="workshop"] .brand{text-transform:uppercase;letter-spacing:3px;font-size:20px;color:var(--accent);}
+  [data-theme="workshop"] .count b{font-size:52px;}
+  [data-theme="workshop"] .tile,[data-theme="workshop"] .vinpromo,[data-theme="workshop"] .form,[data-theme="workshop"] .hrow,
+  [data-theme="workshop"] .info,[data-theme="workshop"] .empty{border-radius:14px;}
+  [data-theme="workshop"] .name{text-transform:uppercase;letter-spacing:.4px;font-size:15px;}
+  [data-theme="workshop"] .chip{border-radius:8px;text-transform:uppercase;font-size:13px;letter-spacing:.6px;}
+  [data-theme="workshop"] .ico{border-radius:10px;}
+  [data-theme="workshop"] .pill,[data-theme="workshop"] .solo{border-radius:16px;}
+  [data-theme="workshop"] .pill button{border-radius:12px;}
+  [data-theme="workshop"] .cartbar,[data-theme="workshop"] .primary{border-radius:12px;text-transform:uppercase;letter-spacing:1px;}
+
+  /* 2. РЕТРО-ГАРАЖ — светлая тема, кремовый + тёмно-зелёный, как эмалированная вывеска */
+  body[data-theme="retro"]{--bg:#efe7d8;--card:#fbf6ec;--card2:#e8dcc6;--line:#d6c8ae;--text:#1f2a24;--muted:#7a7262;
+    --accent:#c4472c;--on-accent:#fff;--green:#2f6b4f;--head:"Roboto Slab","DejaVu Serif",Georgia,serif;}
+  [data-theme="retro"] .hero,[data-theme="retro"] .hero.plain{background:#1f3d2f;color:#efe7d8;
+    box-shadow:inset 0 0 0 7px #1f3d2f, inset 0 0 0 9px #c9b88f;}
+  [data-theme="retro"] .hero .door{stroke:#efe7d8;}
+  [data-theme="retro"] .hero .round svg{stroke:#efe7d8;}
+  [data-theme="retro"] .pillchip{color:#efe7d8;}
+  [data-theme="retro"] .brand{font-size:21px;}
+  [data-theme="retro"] .tile,[data-theme="retro"] .vinpromo,[data-theme="retro"] .form,[data-theme="retro"] .hrow,
+  [data-theme="retro"] .info,[data-theme="retro"] .empty,[data-theme="retro"] .row{box-shadow:0 1px 0 var(--line),0 6px 18px rgba(60,45,20,.06);}
+  [data-theme="retro"] .chip{border:1px solid var(--line);}
+  [data-theme="retro"] .chip.active{background:#1f3d2f;color:#efe7d8;border-color:#1f3d2f;}
+  [data-theme="retro"] .primary{background:#1f3d2f;color:#efe7d8;}
+  [data-theme="retro"] .month b,[data-theme="retro"] .tags .tg,[data-theme="retro"] .info p,[data-theme="retro"] .sheet p,
+  [data-theme="retro"] .helpbox,[data-theme="retro"] .quick button{color:var(--text);}
+  [data-theme="retro"] .sheet{background:var(--card);}
+  [data-theme="retro"] .pill,[data-theme="retro"] .solo{background:#1f3d2f;}
+  [data-theme="retro"] .pill svg,[data-theme="retro"] .solo svg{stroke:rgba(239,231,216,.55);}
+  [data-theme="retro"] .pill button.active{background:rgba(239,231,216,.14);}
+  [data-theme="retro"] .pill button.active svg{stroke:#efe7d8;}
+
+  /* 3. ГОНОЧНЫЙ — чёрный + гоночный красный, клетчатый флаг и наклонные заголовки */
+  body[data-theme="racing"]{--bg:#0b0b0b;--card:#161616;--card2:#232323;--line:#2e2e2e;--text:#fff;--muted:#8a8a8a;
+    --accent:#e10600;--on-accent:#fff;--head:"Russo One","DejaVu Sans",sans-serif;}
+  [data-theme="racing"] .hero,[data-theme="racing"] .hero.plain{background:
+      linear-gradient(115deg,transparent 58%,#e10600 58% 61%,transparent 61% 64%,#e10600 64% 65%,transparent 65%),
+      #141414;}
+  [data-theme="racing"] .hero::after{content:"";position:absolute;right:0;top:0;width:150px;height:100%;opacity:.16;
+    background:conic-gradient(#fff 25%,transparent 0 50%,#fff 0 75%,transparent 0) 0 0/24px 24px;
+    -webkit-mask:linear-gradient(90deg,transparent,#000);mask:linear-gradient(90deg,transparent,#000);}
+  [data-theme="racing"] .hero .door{display:none;}
+  [data-theme="racing"] .brand,[data-theme="racing"] .count b,[data-theme="racing"] .name,[data-theme="racing"] h2,
+  [data-theme="racing"] .vinpromo b,[data-theme="racing"] .cartbar,[data-theme="racing"] .primary{font-style:italic;}
+  [data-theme="racing"] .brand{text-transform:uppercase;letter-spacing:2px;font-size:20px;}
+  [data-theme="racing"] .tile{border-radius:18px;border-left:4px solid var(--card2);}
+  [data-theme="racing"] .tile.on{border-color:var(--accent);border-left-color:var(--accent);}
+  [data-theme="racing"] .chip.active{background:var(--accent);color:#fff;}
+
+  /* общие правки под тему */
+  body .cartbar,body .badge{color:var(--on-accent);}
+  .tile.on .add svg{stroke:var(--on-accent);}
+
+  /* ====== ЖИВОЙ КАТАЛОГ ====== */
+  /* заставка: поднимаются гаражные ворота */
+  #intro{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;
+    background:repeating-linear-gradient(180deg,#1a1d21 0 34px,#2a2e34 34px 37px);
+    transition:transform .85s cubic-bezier(.75,0,.25,1);}
+  #intro img{width:150px;height:150px;transition:transform .5s ease;}
+  #intro.up{transform:translateY(-100%);}
+  #intro.up img{transform:scale(.85);}
+
+  /* бегущая строка */
+  .ticker{margin:12px -14px 0;overflow:hidden;white-space:nowrap;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:10px 0;}
+  .ticker div{display:inline-block;animation:tick 26s linear infinite;font:600 13px/1 var(--head);letter-spacing:2.2px;text-transform:uppercase;color:var(--muted);}
+  .ticker i{font-style:normal;color:var(--text);margin:0 14px;}
+  @keyframes tick{to{transform:translateX(-50%);}}
+
+  .section{display:flex;justify-content:space-between;align-items:baseline;margin:18px 2px 10px;}
+  .section b{font:700 18px var(--head);text-transform:uppercase;letter-spacing:1.2px;}
+  .section span{font-size:12px;color:var(--muted);}
+
+  /* плитка-хит */
+  .feat{grid-column:1/-1;position:relative;overflow:hidden;min-height:178px;border-radius:24px;padding:18px;
+    background:var(--text);color:var(--bg);display:flex;flex-direction:column;text-align:left;}
+  .feat .hit{align-self:flex-start;font:700 11px/1 var(--head);letter-spacing:1.6px;background:var(--bg);color:var(--text);padding:6px 9px;border-radius:7px;}
+  .feat .fname{font:700 23px/1.08 var(--head);text-transform:uppercase;letter-spacing:.5px;margin-top:12px;max-width:64%;}
+  .feat .fdesc{font-size:13px;line-height:1.35;opacity:.72;margin-top:6px;max-width:62%;}
+  .feat .art{position:absolute;right:-14px;bottom:-18px;width:168px;height:168px;fill:none;stroke:var(--bg);stroke-width:1.15;
+    stroke-linecap:round;stroke-linejoin:round;transform:rotate(-12deg);opacity:.9;pointer-events:none;}
+  .feat .fbtn{align-self:flex-start;margin-top:auto;position:relative;padding:11px 16px;border-radius:999px;background:var(--bg);color:var(--text);
+    font:700 14px/1 var(--head);text-transform:uppercase;letter-spacing:1px;}
+  .feat.on .fbtn{background:transparent;color:var(--bg);box-shadow:inset 0 0 0 1.5px var(--bg);}
+  .feat .fwrap{margin-top:14px;}
+
+  /* обычная плитка: номер + контурный рисунок */
+  .tile{overflow:hidden;}
+  .tile .no{font:700 13px/1 var(--head);letter-spacing:1.6px;color:var(--muted);margin-top:4px;}
+  .tile .wm{position:absolute;right:-22px;bottom:34px;width:118px;height:118px;fill:none;stroke:var(--text);stroke-width:1.1;
+    stroke-linecap:round;stroke-linejoin:round;opacity:.08;transform:rotate(-12deg);pointer-events:none;transition:opacity .2s;}
+  .tile.on .wm{opacity:.18;}
+  .tile .name{margin-top:12px;position:relative;}
+
+  /* комплект-купон */
+  .bundle{grid-column:1/-1;position:relative;display:flex;align-items:center;gap:14px;background:var(--card);
+    border:1.5px dashed rgba(143,139,128,.55);border-radius:22px;padding:16px 18px;}
+  .bundle::before,.bundle::after{content:"";position:absolute;top:50%;width:20px;height:20px;margin-top:-10px;border-radius:50%;background:var(--bg);}
+  .bundle::before{left:-11px;} .bundle::after{right:-11px;}
+  .bundle .pair{flex:none;display:flex;align-items:center;gap:4px;}
+  .bundle .pair svg{width:30px;height:30px;fill:none;stroke:var(--text);stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;}
+  .bundle .pair em{font-style:normal;color:var(--muted);font-weight:700;}
+  .bundle .bt{flex:1;min-width:0;}
+  .bundle .bt small{display:block;font:700 11px/1 var(--head);letter-spacing:1.6px;color:var(--muted);text-transform:uppercase;}
+  .bundle .bt b{display:block;font:700 16px/1.15 var(--head);text-transform:uppercase;margin-top:5px;}
+  .bundle .bt span{display:block;font-size:12px;color:var(--muted);margin-top:4px;line-height:1.3;}
+  .bundle .bbtn{flex:none;padding:10px 12px;border-radius:12px;background:var(--text);color:var(--bg);font:700 12px/1.1 var(--head);text-transform:uppercase;letter-spacing:.6px;}
+  .bundle.on .bbtn{background:transparent;color:var(--text);box-shadow:inset 0 0 0 1.5px var(--text);}
+
+  /* фото товаров: белый фон снимка «растворяется» в кремовой подложке (multiply) */
+  .tile .ph{position:relative;height:120px;margin-top:12px;border-radius:16px;background:#ece8dc;
+    display:flex;align-items:center;justify-content:center;overflow:hidden;}
+  .tile .ph img{max-width:86%;max-height:88%;object-fit:contain;mix-blend-mode:multiply;}
+  .tile .ph + .name{margin-top:10px;}
+  .feat .fphoto{position:absolute;right:10px;bottom:14px;width:38%;max-height:82%;object-fit:contain;mix-blend-mode:multiply;pointer-events:none;}
+  .sph{height:220px;border-radius:20px;background:#ece8dc;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+  .sph img{max-height:90%;max-width:80%;object-fit:contain;mix-blend-mode:multiply;}
+
+  /* ===== ШИНЫ ===== */
+  .tfilters{margin:0 0 4px;}
+  .seg{display:flex;background:var(--card);border-radius:14px;padding:4px;gap:4px;}
+  .seg button{flex:1;padding:10px 6px;border-radius:10px;font:600 14px/1 var(--head);text-transform:uppercase;letter-spacing:.8px;color:var(--muted);}
+  .seg button.on{background:var(--text);color:var(--bg);}
+  .rims{display:flex;gap:6px;overflow-x:auto;margin:10px -14px 0;padding:0 14px;scrollbar-width:none;}
+  .rims::-webkit-scrollbar{display:none;}
+  .rims button{flex:none;min-width:52px;padding:9px 10px;border-radius:10px;background:var(--card);border:1px solid var(--line);
+    font:700 14px/1 var(--head);color:var(--muted);}
+  .rims button.on{background:var(--text);border-color:var(--text);color:var(--bg);}
+  .tsearch{display:flex;align-items:center;gap:10px;margin-top:10px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:0 14px;}
+  .tsearch svg{width:18px;height:18px;flex:none;stroke:var(--muted);fill:none;stroke-width:2;}
+  .tsearch input{flex:1;min-width:0;background:none;border:none;outline:none;color:var(--text);font:500 15px/1 inherit;font-family:inherit;padding:13px 0;}
+  .brand-t{position:relative;overflow:hidden;background:var(--card);border-radius:20px;padding:15px 14px 13px;min-height:128px;
+    display:flex;flex-direction:column;text-align:left;border:1.5px solid transparent;}
+  .brand-t:active{transform:scale(.97);}
+  .brand-t.on{border-color:var(--text);}
+  .brand-t .bn{font:700 21px/1.05 var(--head);text-transform:uppercase;letter-spacing:.6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:22px;}
+  .brand-t .bn.l{font-size:17px;} .brand-t .bn.xl{font-size:14px;}
+  .brand-t .bm{font-size:12px;color:var(--muted);margin-top:6px;}
+  .brand-t .br{margin-top:auto;padding-top:10px;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:6px 10px;font:600 13px/1 var(--head);letter-spacing:.6px;}
+  .brand-t .ss{color:var(--muted);text-transform:uppercase;font-size:11px;}
+  .brand-t .wheel{position:absolute;right:-26px;top:-26px;width:96px;height:96px;fill:none;stroke:var(--text);stroke-width:1;opacity:.07;}
+  .brand-t .cnt{position:absolute;top:12px;right:12px;min-width:22px;height:22px;border-radius:11px;padding:0 6px;background:var(--text);color:var(--bg);
+    font:800 12px/22px var(--head);text-align:center;}
+  .more{grid-column:1/-1;padding:13px;border-radius:14px;background:var(--card);font:700 14px var(--head);text-transform:uppercase;letter-spacing:.8px;}
+
+  /* карточка марки */
+  .sheet .shead{display:flex;justify-content:space-between;align-items:baseline;gap:10px;}
+  .sheet .shead h4{margin:4px 0 2px;font:700 26px/1.05 var(--head);text-transform:uppercase;letter-spacing:.6px;}
+  .sheet .shead span{font-size:12px;color:var(--muted);white-space:nowrap;}
+  .fnote{font-size:12px;color:var(--muted);margin:4px 0 6px;}
+  .mdl{background:var(--card);border-radius:18px;padding:14px;margin-top:10px;}
+  .mdl .mt{display:flex;justify-content:space-between;align-items:center;gap:8px;}
+  .mdl .mt b{font:700 16px/1.15 var(--head);text-transform:uppercase;letter-spacing:.4px;}
+  .mdl .se{flex:none;font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--muted);border:1px solid var(--line);border-radius:7px;padding:4px 7px;}
+  .rrow{display:flex;gap:10px;align-items:flex-start;margin-top:10px;}
+  .rrow .rl{flex:none;width:42px;font:700 14px/30px var(--head);color:var(--muted);}
+  .rrow .zs{display:flex;flex-wrap:wrap;gap:6px;}
+  .zs button{padding:7px 10px;border-radius:9px;background:var(--card2);font:600 13px/16px var(--head);letter-spacing:.3px;color:var(--text);}
+  .zs button small{font-size:10px;color:var(--muted);margin-left:4px;text-transform:uppercase;}
+  .zs button.on{background:var(--text);color:var(--bg);}
+  .zs button.on small{color:var(--bg);opacity:.7;}
+  .sfoot{position:sticky;bottom:calc(-22px - env(safe-area-inset-bottom,0));margin:14px -18px calc(-22px - env(safe-area-inset-bottom,0));
+    padding:12px 18px calc(16px + env(safe-area-inset-bottom,0));background:linear-gradient(180deg,transparent,var(--card) 30%);}
+  .sfoot .primary{margin-top:0;}
+  .tempty{grid-column:1/-1;}
+
+  /* микро-анимации */
+  @keyframes pop{0%{transform:scale(1);}40%{transform:scale(1.28);}100%{transform:scale(1);}}
+  .pop{animation:pop .32s ease;}
+  @media (prefers-reduced-motion:reduce){ .ticker div{animation:none;} .pop{animation:none;} #intro{display:none;} }
 
   /* sheet */
   .shade{position:fixed;inset:0;background:rgba(0,0,0,.55);opacity:0;pointer-events:none;transition:opacity .2s;z-index:20;}
@@ -123,7 +373,8 @@
   .badge.show{display:flex;}
 </style>
 </head>
-<body>
+<body data-theme="garage">
+<div id="intro"><img id="introLogo" alt=""></div>
 
 <div id="view"></div>
 <div class="footer">@Garage_2026_bot</div>
@@ -152,6 +403,14 @@
 
 <script>
 const tg = window.Telegram && window.Telegram.WebApp;
+const LOGO = "data:image/png;base64,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";
+function heroArt(){
+  return document.body.dataset.theme === "garage"
+    ? `<img class="logo" src="${LOGO}" alt="Гараж">`
+    : `<svg class="door" viewBox="0 0 100 80"><path d="M6 30 50 6l44 24"/><rect x="16" y="30" width="68" height="46" rx="2"/><path d="M16 42h68M16 54h68M16 66h68"/></svg>`;
+}
+const THEME = new URLSearchParams(location.search).get("theme") || document.body.dataset.theme;
+document.body.dataset.theme = THEME;
 
 const ICONS = {
   plug:  '<path d="M9 2v6M15 2v6M6 8h12l-1 6a5 5 0 0 1-10 0L6 8Z"/><path d="M12 18v4"/>',
@@ -161,26 +420,72 @@ const ICONS = {
   shine: '<path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M18 6l-2.5 2.5M8.5 15.5 6 18"/>',
   wheel: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.4"/><path d="M12 3v5.6M12 15.4V21M3 12h5.6M15.4 12H21"/>',
   box:   '<path d="M4 8 12 4l8 4v8l-8 4-8-4V8Z"/><path d="m4 8 8 4 8-4M12 12v8"/>',
+  gear:  '<circle cx="12" cy="12" r="3"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M18.7 5.3l-2.1 2.1M7.4 16.6l-2.1 2.1"/>',
 };
 
 const CATEGORIES = [
   { id:"diag", label:"Диагностика", color:"#5aa2ff", items:[
     { id:"carplay", icon:"plug", name:"Адаптер CarPlay", desc:"Беспроводной CarPlay / Android Auto." },
     { id:"elm327_basic", icon:"scan", name:"OBD-сканер ELM327", desc:"Диагностика неисправностей через телефон." },
-    { id:"elm327_wifi", icon:"scan", name:"Автосканер ELM327 Wi-Fi OBD2", desc:"Версия 1.5 (PIC18F25K80), для iPhone и Android." },
+    { id:"elm327_wifi", icon:"scan", name:"Автосканер ELM327 Wi-Fi OBD2", desc:"Версия 1.5 (PIC18F25K80), для iPhone и Android.", hit:true },
   ]},
   { id:"chem", label:"Автохимия", color:"#ff7a3d", items:[
     { id:"superstar", icon:"spray", name:"Shine Systems SuperStar", desc:"Активный шампунь для 1-й фазы (бесконтактная мойка). Самый мощный по отмыванию в линейке." },
-    { id:"cationic", icon:"drop", name:"Shine Systems CationicShampoo", desc:"Катионный шампунь для 2-й фазы (ручная мойка). Гидрофобный эффект и блеск после смывки." },
+    { id:"cationic", icon:"drop", hit:true, name:"Shine Systems Cationic Shampoo", desc:"Катионный шампунь для 2-й фазы (ручная мойка). Гидрофобный эффект и блеск после смывки." },
     { id:"bitumoff", icon:"spray", name:"Shine Systems BitumOFF", desc:"Терпеновый антибитум. Убирает битумные пятна, смолу и следы насекомых с кузова." },
     { id:"ironoff", icon:"wheel", name:"Shine Systems IronOFF", desc:"Бескислотный очиститель дисков с индикатором — краснеет при реакции с металлической пылью." },
-    { id:"glossprotection", icon:"shine", name:"Shine Systems GlossProtection", desc:"Наноконсервант для 3-й фазы — быстрая сушка, блеск и лёгкий гидрофоб." },
-    { id:"quickdetailer", icon:"shine", name:"Shine Systems QuickDetailer", desc:"Спрей быстрого блеска между полными мойками." },
+    { id:"glossprotection", icon:"shine", name:"Shine Systems Gloss Protection", desc:"Наноконсервант для 3-й фазы — быстрая сушка, блеск и лёгкий гидрофоб." },
+    { id:"quickdetailer", icon:"shine", name:"Shine Systems Quick Detailer", desc:"Спрей быстрого блеска между полными мойками." },
+  ], bundles:[
+    { ids:["bitumoff","ironoff"], title:"BitumOFF + IronOFF", desc:"Кузов и диски — часто берут вместе" },
   ]},
-  { id:"tires", label:"Шины", color:"#4cc38a", items:[] },
+  { id:"tires", label:"Шины", color:"#4cc38a", items:[], tires:true },
 ];
 const ITEM_INDEX = {};
 CATEGORIES.forEach(c => c.items.forEach(it => ITEM_INDEX[it.id] = { ...it, color:c.color }));
+// Шины из прайса: марка → модели → размеры [размер, радиус, C(груз.), шип, id]. Без цен.
+const TIRES = [{"b":"IKON","m":[{"n":"CHARACTER SNOW 2","s":"w","z":[["155/70","13",0,0,"t858e0c4c"],["175/70","13",0,0,"t10251d41"],["175/65","14",0,0,"t129b977f"],["185/60","14",0,0,"tc45dad72"],["185/70","14",0,0,"t29cf2c3f"],["185/55","15",0,0,"t8a52cf54"],["185/65","15",0,0,"t0afcdf37"],["195/65","15",0,0,"t0fd19414"],["205/65","15",0,0,"ta94b5019"],["205/55","16",0,0,"t80024e03"],["215/55","16",0,0,"tbcaec876"],["215/60","16",0,0,"tfe869ddf"],["225/55","17",0,0,"t1a25c4b4"]]},{"n":"CHARACTER ECO","s":"s","z":[["175/65","14",0,0,"ta189746f"],["185/70","14",0,0,"t1ee9fd98"],["195/55","15",0,0,"t5ce15d13"],["195/60","15",0,0,"tabce3e9e"],["205/65","15",0,0,"t33b58bcc"],["205/70","15",0,0,"t9430cacd"],["195/55","16",0,0,"t608b99db"],["205/55","16",0,0,"t74642f01"],["215/55","16",0,0,"t2d44d19e"]]},{"n":"CHARACTER AQUA SUV","s":"s","z":[["245/70","16",0,0,"t193ddaf0"],["225/65","17",0,0,"t291fb422"],["235/55","17",0,0,"t2bcccc9c"],["265/65","17",0,0,"t64fed2ac"],["235/55","18",0,0,"t102951b1"],["255/55","18",0,0,"t2b28bb23"],["235/50","19",0,0,"tabf37c31"],["255/45","20",0,0,"ta4513bad"]]},{"n":"CHARACTER SNOW 2 SUV","s":"w","z":[["215/65","16",0,0,"t3c1a40e0"],["235/70","16",0,0,"tf78fe471"],["225/60","17",0,0,"ta7855583"],["225/65","17",0,0,"t70a57aca"],["225/55","18",0,0,"t2f2511af"],["225/60","18",0,0,"tf11a21f8"],["235/65","18",0,0,"t72d6a506"]]},{"n":"CHARACTER ICE 5","s":"w","z":[["175/70","13",0,1,"t3d1ad998"],["175/65","14",0,1,"tbe27a7ba"],["185/60","14",0,1,"tdaa7adcb"],["185/65","14",0,1,"td3beda05"],["195/65","15",0,1,"t70ae8860"],["205/55","16",0,1,"t6c108763"]]},{"n":"NORDMAN 5","s":"w","z":[["155/70","13",0,1,"t52fcd90a"],["175/70","13",0,1,"t9ad19c09"],["185/70","14",0,1,"tc350bc5f"]]},{"n":"CHARACTER ULTRA","s":"s","z":[["215/55","17",0,0,"t3cd05e86"],["225/45","17",0,0,"td579350e"]]},{"n":"CHARACTER ICE 7 SUV","s":"w","z":[["225/65","17",0,1,"t52166ac9"]]},{"n":"NORDMAN 7","s":"w","z":[["175/70","14",0,1,"t3f5357a0"]]},{"n":"NORDMAN 8 SUV","s":"w","z":[["255/55","18",0,1,"t3f96d276"]]}]},{"b":"Белшина","m":[{"n":"BEL-109","s":"s","z":[["185/75","16",1,0,"t5e743666"]]},{"n":"BEL-147 ARTMOTIONSNOW","s":"w","z":[["185/65","14",0,0,"t711a89e6"]]},{"n":"BEL-217 ARTMOTIONSNOW","s":"w","z":[["215/65","16",0,0,"t88aeafe1"]]},{"n":"BEL-253 ARTMOTION","s":"s","z":[["175/70","13",0,0,"tc06b1ede"]]},{"n":"BEL-256 ARTMOTION","s":"s","z":[["185/60","14",0,0,"tbe38716a"]]},{"n":"BEL-262 ARTMOTION","s":"s","z":[["205/55","16",0,0,"t9a73f6e8"]]},{"n":"BEL-267 ARTMOTIONSNOW","s":"w","z":[["185/60","14",0,0,"t75ebe2fa"]]},{"n":"BEL-270","s":"s","z":[["205/65","16",0,0,"t5d474c94"]]},{"n":"BEL-274 ARTMOTION","s":"s","z":[["185/70","14",0,0,"t802519e9"]]},{"n":"BEL-275","s":"s","z":[["225/75","16",0,0,"tf477355d"]]},{"n":"BEL-277","s":"w","z":[["205/60","16",0,0,"tcec9f273"]]},{"n":"BEL-279 ARTMOTION","s":"s","z":[["205/65","15",0,0,"ta4741a2f"]]},{"n":"BEL-280 ARTMOTION","s":"s","z":[["185/65","15",0,0,"t9da8843f"]]},{"n":"BEL-281 ARTMOTION","s":"s","z":[["195/60","15",0,0,"ta5bbe9c9"]]},{"n":"BEL-282 ARTMOTION","s":"s","z":[["205/60","16",0,0,"t70155c73"]]},{"n":"BEL-283 ARTMOTION","s":"s","z":[["215/60","16",0,0,"t25ae0b35"]]},{"n":"BEL-286 ARTMOTION","s":"s","z":[["185/60","15",0,0,"t388b4a81"]]},{"n":"BEL-287 ARTMOTIONSNOW","s":"w","z":[["185/65","15",0,0,"t6f61103f"]]},{"n":"BEL-293","s":"w","z":[["185/75","16",1,0,"td679b8bf"]]},{"n":"BEL-294 ARTMOTION","s":"s","z":[["195/55","16",0,0,"t76970f2f"]]},{"n":"BEL-295","s":"s","z":[["225/65","17",0,0,"t81e1f7d3"]]},{"n":"BEL-297","s":"w","z":[["205/65","15",0,0,"t2b3b76ee"]]},{"n":"BEL-303","s":"w","z":[["195/75","16",1,0,"t824ad53e"]]},{"n":"BEL-307 ARTMOTIONSNOW","s":"w","z":[["195/60","15",0,0,"tc2729365"]]},{"n":"BEL-313","s":"w","z":[["215/75","16",1,0,"t5bfc7743"]]},{"n":"BEL-317 ARTMOTIONSNOW","s":"w","z":[["205/55","16",0,0,"t764969b6"]]},{"n":"BEL-330 ARTMOTION","s":"s","z":[["215/65","16",0,0,"t2395db6d"]]},{"n":"BEL-337 ARTMOTIONSNOW","s":"w","z":[["195/65","15",0,0,"t79cdda89"]]},{"n":"BEL-345 ASTARTA","s":"s","z":[["205/70","16",0,0,"teccd8df9"]]},{"n":"BEL-347 ARTMOTIONSNOW","s":"w","z":[["175/70","13",0,0,"t06a27af6"]]},{"n":"BEL-353","s":"w","z":[["225/70","15",1,0,"taa76c207"]]},{"n":"BEL-357 ARTMOTIONSNOW","s":"w","z":[["175/65","14",0,0,"t16aeda22"]]},{"n":"BEL-367 ARTMOTIONSNOW","s":"w","z":[["185/60","15",0,0,"t56d1859a"]]},{"n":"BEL-377","s":"w","z":[["215/60","16",0,0,"ta03b82ab"]]},{"n":"BEL-397","s":"w","z":[["185/70","14",0,0,"t07249cd5"]]},{"n":"BEL-403 ASTARTA","s":"s","z":[["225/60","18",0,0,"t4202139d"]]},{"n":"BEL-464","s":"w","z":[["215/60","17",0,0,"t77d4fbcc"]]},{"n":"BEL-467","s":"w","z":[["205/65","16",0,0,"t28521f6e"]]},{"n":"BEL-494","s":"w","z":[["225/60","18",0,0,"t979bb9ab"]]},{"n":"BEL-509","s":"s","z":[["225/65","17",0,0,"t0339d511"]]},{"n":"BEL-517","s":"w","z":[["225/65","17",0,0,"t87c7d13d"]]},{"n":"BEL-627","s":"w","z":[["235/55","17",0,0,"t94e0741c"]]},{"n":"PS-105 ARTMOTION PREMIUM","s":"s","z":[["205/50","17",0,0,"t35486608"]]},{"n":"БИ-522","s":"s","z":[["175","16",1,0,"tf1e0458d"]]}]},{"b":"КАМА","m":[{"n":"ALGA НК-531","s":"w","z":[["175/70","13",0,1,"tdebb45c9"],["175/65","14",0,0,"teca3b1ec"],["175/65","14",0,1,"t96c58a26"],["185/60","14",0,0,"t6de4470a"],["185/65","14",0,1,"t8202284b"],["185/70","14",0,0,"t2cecd5f3"],["185/70","14",0,1,"tf50c3530"],["195/65","15",0,0,"t9ef9cf8d"]]},{"n":"241","s":"s","z":[["175/70","13",0,0,"tda7054f4"],["175/65","14",0,0,"td25d4be7"],["185/60","14",0,0,"t9312dd73"],["185/65","14",0,0,"ta6a6fb49"],["185/70","14",0,0,"t82ed04e9"],["195/65","15",0,0,"tc3c150e9"],["205/55","16",0,0,"t4217d94b"]]},{"n":"ФЛЕЙМ М/Т (НК-434)","s":"s","z":[["205/70","15",0,0,"tcad3e27f"],["215/75","15",0,0,"t98bb8e99"],["185/75","16",0,0,"tb70af315"],["205/70","16",0,0,"t694d2d77"],["215/65","16",0,0,"t4b30500d"],["225/75","16",0,0,"t8c671269"]]},{"n":"ALGA SUV (НК-532)","s":"w","z":[["205/70","15",0,0,"t8c8984e4"],["205/70","15",0,1,"tcca07d95"],["185/75","16",0,0,"t69dd6fcf"],["185/75","16",0,1,"t843933f7"],["225/75","16",0,0,"t01faeb71"]]},{"n":"242","s":"s","z":[["185/75","16",0,0,"t618bf039"],["215/65","16",0,0,"t423a6b41"]]},{"n":"ALGA (НК-534)","s":"w","z":[["185/80","14",1,0,"t989c552e"],["195","14",1,0,"t97d79956"]]},{"n":"BREEZE НК-132","s":"s","z":[["185/70","14",0,0,"t909d4cba"],["205/65","15",0,0,"te5b8d66c"]]},{"n":"НК-243","s":"s","z":[["185","14",1,0,"t81ded41f"],["185/75","16",1,0,"t4358762b"]]},{"n":"218","s":"s","z":[["225/75","16",1,0,"tf62cd3c0"]]},{"n":"219","s":"s","z":[["225/75","16",0,0,"tef55e508"]]},{"n":"221","s":"s","z":[["235/70","16",0,0,"t621c6c70"]]},{"n":"242 SUV","s":"s","z":[["205/70","15",0,0,"t25a5a59d"]]},{"n":"515","s":"w","z":[["205/75","15",0,0,"ta2aa260b"]]},{"n":"И-502","s":"s","z":[["225/85","15",1,0,"ted2cf3aa"]]},{"n":"И-511","s":"w","z":[["175/80","16",0,1,"t1942b020"]]},{"n":"И-520 ПИЛИГРИМ","s":"s","z":[["235/75","15",0,0,"tcd748faa"]]},{"n":"ФЛЭЙМ А/Т (НК-245)","s":"s","z":[["185/75","16",0,0,"tee0fce63"]]}]},{"b":"SONIX","m":[{"n":"SNOWROVER","s":"w","z":[["195/70","15",1,0,"te1a79f84"],["225/55","16",0,0,"t5f611be5"],["185/75","16",1,0,"tf7e2c6ce"],["205/50","17",0,0,"td68d0a9c"],["225/50","17",0,0,"t634eef63"],["225/55","17",0,0,"tdabdb8ae"],["225/60","17",0,0,"t626dcf5d"],["235/45","17",0,0,"t0f6a169d"],["235/60","18",0,0,"tcdc6935c"],["285/60","18",0,0,"t68433ad2"]]},{"n":"PRIMEMARCH H/T 79","s":"s","z":[["245/70","16",0,0,"t928df374"],["215/60","17",0,0,"t8ec653d5"],["255/60","17",0,0,"t1c6f5677"],["235/65","18",0,0,"t6c2a0af4"],["255/50","19",0,0,"t5df8b4a1"],["255/55","19",0,0,"t674875bd"]]},{"n":"WINTERXPRO","s":"w","z":[["205/65","16",0,0,"t0d7a9201"],["215/45","17",0,0,"ta52889c7"],["235/45","18",0,0,"td8848da2"],["235/50","18",0,0,"t1d206304"],["245/50","19",0,0,"tc370d80f"],["285/50","20",0,0,"ta3a12268"]]},{"n":"XSPORT S8","s":"s","z":[["225/50","18",0,0,"td478df9b"],["235/45","18",0,0,"t7eeadf2b"],["235/40","19",0,0,"tae511f7a"],["245/45","19",0,0,"t10ec5fc3"],["255/45","20",0,0,"tddb111bf"]]},{"n":"ECOPRO 99","s":"s","z":[["185/55","15",0,0,"tce563590"],["195/50","15",0,0,"t4c4953a1"],["205/60","15",0,0,"tafa01ba8"]]},{"n":"XCOMFORT S7","s":"s","z":[["185/60","15",0,0,"t181e22c3"],["235/60","16",0,0,"t5c936979"]]},{"n":"L-ZEAL 56","s":"s","z":[["245/45","20",0,0,"tbd1380a3"]]},{"n":"LOADING PRO","s":"s","z":[["195/75","16",1,0,"ted73d177"]]},{"n":"PRIME UHP 08","s":"s","z":[["235/50","19",0,0,"tadca806b"]]},{"n":"PRIMEMARCH H/T69","s":"s","z":[["225/60","17",0,0,"t360d95d1"]]},{"n":"PRIMEMASTER M/T I","s":"s","z":[["245/75","16",0,0,"t846e1712"]]},{"n":"PRIMEMAX A/T II W","s":"s","z":[["245/75","16",0,0,"t6e35630b"]]},{"n":"PRIMESTAR 66","s":"s","z":[["205/70","14",0,0,"t17bde0bf"]]},{"n":"PRIMEVAN 9","s":"s","z":[["225/75","16",1,0,"tbe82e231"]]},{"n":"SUPERVAN S1","s":"s","z":[["195/70","15",1,0,"t85b3ec74"]]}]},{"b":"DOUBLESTAR","m":[{"n":"T102 DW02","s":"w","z":[["195/55","16",0,0,"t94f10826"],["225/45","17",0,0,"td6ef8210"],["235/65","17",0,0,"t68a45b0c"],["265/65","17",0,0,"ta8e85b60"],["225/45","18",0,0,"t2ac5c6ad"],["235/40","18",0,0,"t51c98920"],["245/45","18",0,0,"t06d01e1f"],["245/50","18",0,0,"t088d697e"],["245/60","18",0,0,"t1d235271"],["235/55","19",0,0,"t9400dbc9"],["245/45","19",0,0,"tce00d474"],["255/55","19",0,0,"t963e955c"],["245/45","20",0,0,"t42926c1a"],["255/45","20",0,0,"tbd5d6999"]]},{"n":"DSS02","s":"s","z":[["235/65","17",0,0,"t07a67166"],["225/55","18",0,0,"ta565b3e1"],["265/60","18",0,0,"t655bbf7c"],["225/55","19",0,0,"t3f67371d"],["235/55","20",0,0,"t3a433f5f"]]},{"n":"DH03","s":"s","z":[["195/55","15",0,0,"t7a45d953"],["205/55","16",0,0,"t28b20873"],["215/60","16",0,0,"t407edd50"],["225/45","17",0,0,"t589f6013"]]},{"n":"DW01","s":"w","z":[["245/70","16",0,1,"t175d0df6"],["225/50","17",0,1,"t65fbc3df"],["225/65","17",0,1,"tb237f720"],["215/55","18",0,1,"tcafba1a8"]]},{"n":"DW09","s":"w","z":[["215/45","17",0,0,"t17e77944"],["235/55","20",0,0,"tb18251c5"],["275/40","20",0,0,"tfe07356c"],["315/35","20",0,0,"t3505df04"]]},{"n":"DS01","s":"s","z":[["215/60","17",0,0,"tff5318f5"],["225/60","17",0,0,"t4df229c6"]]},{"n":"DSU02","s":"s","z":[["215/55","17",0,0,"t63b79cef"]]},{"n":"DW06","s":"w","z":[["225/75","16",1,0,"tb88f2dee"]]},{"n":"DW08","s":"w","z":[["175/70","13",0,0,"t92e76d29"]]},{"n":"DW16","s":"w","z":[["235/65","18",0,0,"td1edc5f6"]]},{"n":"T01 ГРЯЗЬ","s":"s","z":[["225/75","16",0,0,"t3b6b1065"]]}]},{"b":"KUMHO","m":[{"n":"WINTERCRAFT ICE WI51","s":"w","z":[["175/65","14",0,0,"tc257ae55"],["185/70","14",0,0,"tae2e9047"],["185/60","15",0,0,"td2bab42b"],["185/65","15",0,0,"t916ea19a"],["195/60","15",0,0,"tb164bf6b"],["195/65","15",0,0,"tffa01f64"],["195/55","16",0,0,"t223c8508"],["205/55","16",0,0,"tf7563335"],["205/60","16",0,0,"tdac7f45f"],["205/65","16",0,0,"ta76b852b"],["205/55","17",0,0,"t82d3d409"],["215/50","17",0,0,"t8f747bca"],["235/45","18",0,0,"tf4db7f6f"]]},{"n":"WINTERCRAFT SUV ICE WS51","s":"w","z":[["215/60","17",0,0,"t91577be9"],["225/60","17",0,0,"te7b2bb80"],["225/65","17",0,0,"t20efe9b3"],["235/55","19",0,0,"t0d770160"]]},{"n":"ES-31","s":"s","z":[["205/60","16",0,0,"t1cf7d8ed"],["215/65","16",0,0,"te060f5e8"]]},{"n":"HP-71","s":"s","z":[["225/65","17",0,0,"t8c47b34a"],["225/55","19",0,0,"tcd3b2f2d"]]},{"n":"HS-52","s":"s","z":[["205/65","15",0,0,"t3fa23e9d"],["225/55","17",0,0,"tba7c3508"]]},{"n":"PS-71","s":"s","z":[["215/55","18",0,0,"tea0fd949"],["285/50","20",0,0,"t0d9cbecd"]]},{"n":"CW51","s":"w","z":[["225/70","15",1,0,"t0058b625"]]},{"n":"HP-71 VIETNAM","s":"s","z":[["235/65","18",0,0,"tc7a029de"]]},{"n":"HS-51","s":"s","z":[["235/45","18",0,0,"teaef119e"]]},{"n":"KL-33","s":"s","z":[["225/55","18",0,0,"t49c083c9"]]},{"n":"WI32","s":"w","z":[["185/70","14",0,1,"t2a93272a"]]}]},{"b":"ROADSTONE","m":[{"n":"WINGUARD WINSPIKE","s":"w","z":[["185/65","14",0,1,"t126a184b"],["185/60","15",0,1,"td541d4ff"],["195/55","15",0,1,"tf241df7b"],["205/65","15",0,1,"tcf19f488"],["205/70","15",0,1,"t1763295a"],["215/65","16",0,1,"tbf118d46"],["215/65","16",1,1,"tbd4e0217"],["215/55","17",0,1,"tc746785a"],["215/60","17",0,1,"tb19c6bbc"],["225/60","17",0,1,"tcdecc773"],["225/65","17",0,1,"t77d7664c"],["235/65","17",0,1,"t73f5fd8e"]]},{"n":"EUROVIS SPORT 04","s":"s","z":[["185/60","15",0,0,"tb8ee5f05"],["195/55","16",0,0,"t65e2cf8b"],["225/45","17",0,0,"t70f51dec"],["225/45","19",0,0,"tbf468a29"]]},{"n":"WINGUARD ICE SUV","s":"w","z":[["225/75","16",0,0,"t4b3b4465"],["225/65","17",0,0,"t6843ddb6"],["235/60","18",0,0,"tdd0067d9"]]},{"n":"WINGUARD WINSPIKE SUV","s":"w","z":[["215/70","16",0,1,"t6c33494c"],["265/65","17",0,1,"tc15d8686"],["225/60","18",0,1,"tf54a7dc6"]]},{"n":"WINGUARD ICE PLUS","s":"w","z":[["175/70","14",0,0,"t8055747f"],["195/65","15",0,0,"tb4ceac4d"]]},{"n":"NBLUE ECO","s":"s","z":[["195/65","15",0,0,"td394d270"]]},{"n":"NFERA RU1","s":"s","z":[["235/50","18",0,0,"tefea0e42"]]},{"n":"WINGUARD SUV","s":"w","z":[["225/60","18",0,0,"t6fab61bc"]]}]},{"b":"PIRELLI","m":[{"n":"FORMULA ICE","s":"w","z":[["185/55","15",0,1,"t614da4fa"],["195/65","15",0,1,"t54e86583"],["205/65","16",0,1,"t0de1acd8"],["205/50","17",0,1,"tcd863bab"],["265/60","18",0,1,"t3572a2fd"]]},{"n":"FORMULA ICE FRICTION","s":"w","z":[["185/60","15",0,0,"tbd9be9da"],["195/65","15",0,0,"t49c71df0"],["215/60","16",0,0,"tc18acbbb"],["215/55","17",0,0,"tb63c4dd5"],["235/55","19",0,0,"t562a8653"]]},{"n":"W-ICE ZERO FRICTION","s":"w","z":[["215/65","16",0,0,"t2859e1e5"],["215/55","18",0,0,"td30eff1d"],["225/55","19",0,0,"t1876505a"]]},{"n":"POWERGY","s":"s","z":[["205/65","16",0,0,"tb6b0e959"],["225/65","17",0,0,"t88f5aea6"]]},{"n":"ICE ZERO","s":"w","z":[["195/65","15",0,1,"t4c2b1f54"]]},{"n":"ICE ZERO FR","s":"w","z":[["255/55","18",0,0,"t5cdf018d"]]},{"n":"SCORPION ATR","s":"s","z":[["185/75","16",0,0,"t1e7b7b17"]]},{"n":"SCORPION VERDE","s":"s","z":[["215/60","17",0,0,"t6fad48c2"]]},{"n":"W-ICE ZERO","s":"w","z":[["215/65","16",0,1,"t0d17dac8"]]},{"n":"W-ICE ZERO FR","s":"w","z":[["195/65","15",0,0,"teabd3c29"]]},{"n":"WINTER ICE ZERO FRICTION","s":"w","z":[["185/65","15",0,0,"t3af5555d"]]}]},{"b":"LASSA","m":[{"n":"TRANSWAY","s":"s","z":[["195","14",1,0,"t58bc7496"],["205/65","16",1,0,"te3f946b5"],["225/65","16",1,0,"tc6ac931e"],["235/65","16",1,0,"tba247ef4"]]},{"n":"COMPETUS A/T3","s":"s","z":[["215/65","16",0,0,"t629aea58"],["225/70","16",0,0,"ta60defa9"],["265/65","17",0,0,"t31e9dd4e"]]},{"n":"WINTUS2","s":"w","z":[["225/70","15",1,0,"tf7482a45"],["185/75","16",1,0,"t7a39e7e0"],["215/75","16",1,0,"tc3a29fc1"]]},{"n":"COMPETUS H/L","s":"s","z":[["215/65","16",0,0,"t864818c7"],["265/70","16",0,0,"tea1aa891"]]},{"n":"COMPETUS H/P 2","s":"s","z":[["225/65","17",0,0,"t4fef65ed"],["225/60","18",0,0,"tbd1a5ae4"]]},{"n":"COMPETUS H/P 3","s":"s","z":[["225/55","18",0,0,"t4c0b0dc8"],["235/50","18",0,0,"tb0c342f0"]]},{"n":"REVOLA","s":"s","z":[["225/55","17",0,0,"t5322ead2"],["235/45","18",0,0,"tba921390"]]},{"n":"DRIVEWAYS","s":"s","z":[["245/45","17",0,0,"t5d681797"]]},{"n":"DRIVEWAYS SPORT+","s":"s","z":[["255/35","18",0,0,"tfde6b383"]]},{"n":"TRANSWAY 2","s":"s","z":[["235/65","16",1,0,"t4e80b997"]]}]},{"b":"NEXEN","m":[{"n":"WINGUARD ICE 3","s":"w","z":[["185/60","14",0,0,"tef4479fa"],["185/65","14",0,0,"tc79fd1df"],["205/55","16",0,0,"t01750a99"],["225/60","17",0,0,"t240abe72"],["235/55","20",0,0,"tb168be55"]]},{"n":"WINGUARD ICE SUV","s":"w","z":[["215/70","16",0,0,"t7accb971"],["245/70","16",0,0,"tc3a81536"],["265/65","17",0,0,"t28750465"],["285/60","18",0,0,"t599bad13"]]},{"n":"WINGUARD ICE PLUS","s":"w","z":[["195/55","15",0,0,"t8a6fab38"],["225/50","17",0,0,"tabf4b19f"],["235/50","18",0,0,"td14a0937"]]},{"n":"NBLUE S","s":"s","z":[["175/70","14",0,0,"t6dc1fcaf"],["185/70","14",0,0,"t510be38d"]]},{"n":"WINGUARD WINSPIKE 3","s":"w","z":[["195/70","15",1,1,"t5949d10e"],["215/65","16",0,1,"tf74e50d0"]]},{"n":"WINGUARD WT1","s":"w","z":[["195/70","15",1,0,"t929b6ea9"],["205/70","15",1,0,"t292b9f65"]]},{"n":"NFERA PRIMUS V","s":"s","z":[["215/65","16",0,0,"t10c25116"]]},{"n":"NFERA RU1","s":"s","z":[["255/55","19",0,0,"tb969b7df"]]},{"n":"NFERA SU1","s":"s","z":[["205/50","17",0,0,"t358ae576"]]}]},{"b":"TUNGA","m":[{"n":"NORDWAY 3","s":"w","z":[["175/70","13",0,1,"t95f5f646"],["175/65","14",0,1,"t2b20ed09"],["185/65","15",0,1,"t1ede0bfa"],["195/55","15",0,1,"t88fc7910"],["195/60","15",0,1,"te5527caa"],["195/65","15",0,1,"te78252aa"],["195/55","16",0,1,"t4340f882"],["205/55","16",0,1,"tb72188be"],["215/65","16",0,1,"tb4c8cedf"]]},{"n":"ZODIAK 2 PS-7","s":"s","z":[["175/70","13",0,0,"td050d2cc"],["185/60","14",0,0,"t2b79761d"],["185/65","14",0,0,"t8b351cc4"],["185/70","14",0,0,"tdb8be347"],["185/65","15",0,0,"t735a2128"],["195/65","15",0,0,"t0cf80d88"],["205/55","16",0,0,"t5073f394"]]},{"n":"NORDWAY 2 PW-5","s":"w","z":[["185/65","14",0,1,"t71cd1375"],["195/65","15",0,1,"t70e8a388"],["205/65","15",0,1,"tcb08bb16"],["205/60","16",0,1,"t21335cc9"]]},{"n":"NORDWAY T7","s":"w","z":[["185/70","14",0,1,"t4feba19f"]]}]},{"b":"FORMULA","m":[{"n":"ENERGY","s":"s","z":[["175/65","14",0,0,"t7193120b"],["185/55","15",0,0,"t85d182d8"],["195/50","15",0,0,"tbc15f5e1"],["215/60","16",0,0,"ta3739d2b"],["215/65","16",0,0,"tfa8ee347"],["215/60","17",0,0,"tf17e98d8"],["225/50","17",0,0,"t512f2328"],["225/60","17",0,0,"t9d1e9112"],["225/65","17",0,0,"te5d719ea"],["235/65","17",0,0,"tb9c7946a"],["225/55","18",0,0,"t342a9450"],["235/55","18",0,0,"t23bcbc00"]]},{"n":"ICE FRICTION","s":"w","z":[["185/65","15",0,0,"t130e52c7"],["205/60","16",0,0,"t2fa3a3f6"]]},{"n":"ICE","s":"w","z":[["225/55","18",0,1,"tde6d3798"]]},{"n":"ICE FR","s":"w","z":[["225/55","18",0,0,"t254dd124"]]}]},{"b":"LANDSAIL","m":[{"n":"WINTER LANDER","s":"w","z":[["185/55","15",0,0,"t461b0bd0"],["215/50","17",0,0,"t5773d76e"],["225/55","18",0,0,"ta2cba706"],["265/55","19",0,0,"t3aed82b4"]]},{"n":"ICE STAR IS33","s":"w","z":[["185/60","15",0,1,"t1f026004"],["225/55","17",0,1,"t33366cd4"],["225/55","18",0,1,"tb3a05f29"]]},{"n":"ICE STAR IS37","s":"w","z":[["215/60","17",0,1,"t9fafe1c0"],["235/45","18",0,1,"t3cae6cad"]]},{"n":"ICE STAR IS37 .","s":"w","z":[["225/60","17",0,1,"t9b48a781"],["225/55","19",0,1,"t47739f8e"]]},{"n":"WINTER STAR","s":"w","z":[["215/70","16",0,0,"tfbf62dd9"],["245/65","17",0,0,"tf45a4798"]]},{"n":"ICE STAR IS33 .","s":"w","z":[["225/50","17",0,1,"tbd72727b"]]},{"n":"LS588","s":"s","z":[["225/55","16",0,0,"t390648d5"]]},{"n":"WINTER ALNDER","s":"w","z":[["235/55","18",0,0,"t9bb5d4ef"]]}]},{"b":"CORDIANT","m":[{"n":"OFF-ROAD 2","s":"s","z":[["205/70","15",0,0,"t9d4343de"],["215/65","16",0,0,"t63d4a1e5"],["245/70","16",0,0,"t59e8bc2a"]]},{"n":"ALL-TERRAIN","s":"s","z":[["235/75","15",0,0,"t4b7ec735"],["215/65","16",0,0,"tb07c1b3e"]]},{"n":"BUSINESS CS-2","s":"s","z":[["225/70","15",1,0,"t031972a4"],["215/65","16",1,0,"t9eb6b3b3"]]},{"n":"OFF-ROAD-2 ГРЯЗЬ","s":"s","z":[["225/75","16",0,0,"t5e21f309"],["245/75","16",0,0,"t1cc82459"]]},{"n":"OFF-ROAD ГРЯЗЬ","s":"s","z":[["225/75","16",0,0,"t21c704c5"]]},{"n":"WINTER DRIVE","s":"w","z":[["215/65","16",0,0,"t1c72ce34"]]},{"n":"WINTER DRIVE 2","s":"w","z":[["235/65","17",0,0,"tbac56d27"]]}]},{"b":"LEAO","m":[{"n":"WINTER DEFENDER ICE I-15 SUV","s":"w","z":[["205/70","15",0,0,"t462ee276"],["225/60","17",0,0,"t5d90bb13"],["225/65","17",0,0,"t6d193f39"],["225/50","18",0,0,"t1eea695e"],["255/55","18",0,0,"t5e1a9d79"],["255/60","18",0,0,"t9bfab6dc"],["265/60","18",0,0,"t4e063bbf"],["225/55","19",0,0,"t958d1078"],["235/50","19",0,0,"ta43b26bf"]]},{"n":"WINTER DEFENDER ICE I-15","s":"w","z":[["205/65","16",0,0,"t4a782b36"]]},{"n":"WINTER DEFENDER VAN","s":"w","z":[["205/75","16",1,0,"ta5061bfa"]]}]},{"b":"LINGLONG","m":[{"n":"GREEN-MAX WINTER ICE I-15 SUV","s":"w","z":[["245/40","18",0,0,"td2598d77"],["255/50","19",0,0,"t4985c8a5"],["285/45","19",0,0,"t872783f8"],["245/50","20",0,0,"t67a0dbe8"],["275/45","20",0,0,"t3d79de02"]]},{"n":"COMFORTMASTER","s":"s","z":[["205/55","17",0,0,"t6694c410"]]},{"n":"GREEN-MAX ECOTOURING","s":"s","z":[["155/70","13",0,0,"ta101b0cf"]]},{"n":"GREEN-MAX VAN 4S","s":"s","z":[["205/70","15",1,0,"te2ebd7af"]]},{"n":"GREEN-MAX WINTER UHP","s":"w","z":[["225/40","18",0,0,"t7d0cc740"]]},{"n":"SPORT MASTER C/S","s":"s","z":[["245/50","19",0,0,"t2b6da82d"]]}]},{"b":"OVATION","m":[{"n":"W-588","s":"w","z":[["235/70","16",0,0,"tf83ddb6b"],["225/65","17",0,0,"tfbf73d49"],["215/55","18",0,0,"t4744ed33"]]},{"n":"WV-03","s":"w","z":[["195/70","15",1,0,"t5a928488"],["195/75","16",1,0,"t399e6f7a"],["225/65","16",1,0,"t8bf6f4a6"]]},{"n":"W-586","s":"w","z":[["155/70","13",0,0,"t2940dab4"],["205/55","17",0,0,"t326c1279"]]},{"n":"WV-688","s":"w","z":[["235/55","19",0,0,"t0a822193"]]}]},{"b":"HANKOOK","m":[{"n":"RW10","s":"w","z":[["215/55","18",0,0,"t0835b8c6"],["235/60","18",0,0,"tb24daf1c"],["265/60","18",0,0,"t2c2b5e3b"]]},{"n":"K435","s":"s","z":[["205/70","15",0,0,"te82066f3"]]},{"n":"RA58","s":"s","z":[["195/75","16",1,0,"tf9ba70b2"]]},{"n":"VENTUS PRIME 4 K135","s":"s","z":[["225/65","17",0,0,"tbfa0af89"]]},{"n":"W429A ИНДОНЕЗИЯ","s":"w","z":[["205/75","15",0,1,"tf2953727"]]},{"n":"W616","s":"w","z":[["205/70","15",0,0,"tf6cff220"]]}]},{"b":"COMPASAL","m":[{"n":"CITI WALKER","s":"s","z":[["215/70","16",0,0,"td0e46788"],["225/60","18",0,0,"td214c01b"],["265/60","18",0,0,"t7c8aa1f9"]]},{"n":"SMACHER","s":"s","z":[["215/45","17",0,0,"tbb2ebf65"],["225/40","18",0,0,"t539bce23"],["275/45","20",0,0,"tcff327f1"]]},{"n":"WINTER BLAZER VAN","s":"w","z":[["215/65","16",1,0,"tae9be5a9"]]}]},{"b":"GISLAVED","m":[{"n":"ARCTIC CONTROL","s":"w","z":[["185/65","15",0,0,"t9457c875"],["285/50","20",0,0,"tfd591204"]]},{"n":"ECOCONTROL","s":"s","z":[["185/65","15",0,0,"t4fbd02d3"],["215/65","16",0,0,"t92d67862"]]},{"n":"SPIKE CONTROL","s":"w","z":[["185/65","15",0,1,"t1b467e45"],["205/60","16",0,1,"t3c7d25d3"]]}]},{"b":"ROADKING","m":[{"n":"ARGOS UHP","s":"s","z":[["215/55","18",0,0,"t64778f6a"],["235/40","18",0,0,"tb389b35c"],["255/55","18",0,0,"t16b8bcc4"],["255/50","19",0,0,"tffc048a5"],["285/45","19",0,0,"te2796cd9"]]},{"n":"ARGOS H/T","s":"s","z":[["265/65","18",0,0,"t27e28774"]]}]},{"b":"TRIANGLE","m":[{"n":"PL01","s":"w","z":[["235/60","16",0,0,"t5e92af04"],["215/65","17",0,0,"t0ca21672"]]},{"n":"PL02","s":"w","z":[["245/70","16",0,0,"taeb23254"],["265/70","16",0,0,"t2e92316b"]]},{"n":"LL01","s":"w","z":[["225/75","16",1,0,"tbf28e130"]]},{"n":"TR646","s":"s","z":[["185/75","16",1,0,"t1639ee3c"]]}]},{"b":"ARMSTRONG","m":[{"n":"SKI -TRAC PC","s":"w","z":[["185/60","15",0,0,"t5577238e"],["185/65","15",0,0,"t30cf0b27"],["195/60","15",0,0,"t1df57469"],["205/60","16",0,0,"ta47b4a6f"]]},{"n":"TRU-TRAC SU","s":"s","z":[["235/60","18",0,0,"t7e8696f4"]]}]},{"b":"ATLANDER","m":[{"n":"LANDERXSPORT ATL36","s":"s","z":[["215/55","16",0,0,"t7c734101"],["225/45","18",0,0,"t74f8181a"],["235/55","19",0,0,"t8570f22b"]]},{"n":"LANDERXSPORT ATL33","s":"s","z":[["195/50","15",0,0,"te857af23"]]},{"n":"ROVERSTAR HT","s":"s","z":[["235/60","18",0,0,"t644887d1"]]}]},{"b":"SATOYA","m":[{"n":"W-36","s":"w","z":[["195/50","15",0,0,"tbcde9eb2"],["195/55","15",0,0,"tc15e0d50"]]},{"n":"CARGO S","s":"s","z":[["185/75","16",1,0,"t13663159"]]},{"n":"DORO S-63","s":"s","z":[["175/70","13",0,0,"t3f8d22cf"]]},{"n":"DORO S-78","s":"s","z":[["235/55","17",0,0,"tb99a67ba"]]}]},{"b":"TORERO","m":[{"n":"MP30","s":"w","z":[["215/60","16",0,1,"tfdb33ca0"],["235/70","16",0,1,"t3a78667a"]]},{"n":"MP 30 SIBIR ICE 2","s":"w","z":[["195/65","15",0,1,"t250e94d9"]]},{"n":"MPS125 VARIANT ALL WEATHER","s":"s","z":[["185/75","16",1,0,"tdb885dd2"]]},{"n":"MPS330","s":"s","z":[["195/70","15",1,0,"t2eb3dae1"]]}]},{"b":"TORQUE","m":[{"n":"TQ026","s":"w","z":[["215/55","17",0,0,"te9197202"],["235/45","18",0,0,"ta99d4588"]]},{"n":"TQ-HP701","s":"s","z":[["245/55","19",0,0,"t0f341d9e"]]},{"n":"WTQ 5000","s":"w","z":[["235/65","16",1,0,"tbc50e162"]]}]},{"b":"TRACMAX","m":[{"n":"X-PRIVILO TX3","s":"s","z":[["235/50","18",0,0,"t983eceb3"],["245/50","18",0,0,"t7d05323c"]]},{"n":"X-PRIVILO TX9","s":"s","z":[["265/65","17",0,0,"tc2dd43eb"],["285/60","18",0,0,"ta0d64512"]]}]},{"b":"MIRAGE","m":[{"n":"MR-HP172","s":"s","z":[["215/65","17",0,0,"te20901a5"],["215/55","18",0,0,"t13f5cf84"]]},{"n":"MR-AT172","s":"s","z":[["215/75","15",0,0,"td1ae88f4"]]}]},{"b":"PREMIORRI","m":[{"n":"VIAMAGGIORE","s":"w","z":[["185/60","15",0,0,"t319683c3"],["215/55","16",0,0,"t86727e1c"]]},{"n":"VIAMAGGIORE Z PLUS","s":"w","z":[["225/40","18",0,0,"t2f6b41d3"]]}]},{"b":"WESTLAKE","m":[{"n":"Z-107","s":"s","z":[["195/70","14",0,0,"t94248789"]]},{"n":"Z-108","s":"s","z":[["225/60","18",0,0,"tee2c8eaa"]]},{"n":"Z-506","s":"w","z":[["235/45","18",0,1,"t56bebfda"]]}]},{"b":"YAZD","m":[{"n":"MARS","s":"s","z":[["185/60","14",0,0,"te18536b5"]]},{"n":"NOVA","s":"s","z":[["185/65","15",0,0,"tb6a77525"]]},{"n":"UNIVERSE","s":"s","z":[["225/55","18",0,0,"t6c589c0a"]]}]},{"b":"ATTAR","m":[{"n":"W01","s":"w","z":[["185/55","15",0,1,"teed1debb"]]},{"n":"W03","s":"w","z":[["225/75","16",1,1,"t108dd35a"]]}]},{"b":"BARS","m":[{"n":"UZ200","s":"s","z":[["185/65","14",0,0,"t99b785df"]]},{"n":"XL630","s":"s","z":[["195/70","15",1,0,"t41e93313"]]}]},{"b":"DELINTE","m":[{"n":"WINTER WD2","s":"w","z":[["215/65","16",1,0,"t6ffdab9c"]]},{"n":"WINTER WD6","s":"w","z":[["155/70","13",0,0,"te2bfbe09"]]}]},{"b":"DYNAMO","m":[{"n":"SNOW-H MWH03","s":"w","z":[["235/55","17",0,1,"td0c91f39"]]},{"n":"STREET-H MH01","s":"s","z":[["225/55","17",0,0,"t94e70cac"]]}]},{"b":"ECOVISION","m":[{"n":"VI-386 HP","s":"s","z":[["255/60","18",0,0,"tfc4d81cd"]]},{"n":"W-686","s":"w","z":[["215/55","17",0,1,"teb405b89"]]}]},{"b":"FORTUNE","m":[{"n":"FSR-303","s":"s","z":[["235/55","18",0,0,"tfaea0417"]]},{"n":"FSR­701","s":"s","z":[["245/40","18",0,0,"td3cc6c22"]]}]},{"b":"MATADOR","m":[{"n":"MP30 SIBIR ICE2","s":"w","z":[["225/45","17",0,1,"t1933c09d"]]},{"n":"MP72 IZZARDA А/Т2","s":"s","z":[["205/70","15",0,0,"t486c2d0a"]]}]},{"b":"OTANI","m":[{"n":"THAILAND MK2000","s":"s","z":[["215/75","16",1,0,"t5fdedc60"]]},{"n":"THAILAND SA1000","s":"s","z":[["275/60","20",0,0,"tf342ff1e"]]}]},{"b":"SAILUN","m":[{"n":"ENDURE WSL1","s":"w","z":[["225/70","15",1,0,"t251796fe"],["205/65","16",1,0,"t44e22d33"]]}]},{"b":"TOURADOR","m":[{"n":"X COMFORT SUV","s":"s","z":[["245/65","17",0,0,"tb100ed6b"]]},{"n":"X WONDER VAN","s":"s","z":[["235/65","16",1,0,"tecc71f95"]]}]},{"b":"AMTEL","m":[{"n":"NORDMASTER EVO","s":"w","z":[["225/60","17",0,0,"td3d0251f"]]}]},{"b":"ARDUZZA","m":[{"n":"ROADCROSSER H/T","s":"s","z":[["285/50","20",0,0,"tccac34c9"]]}]},{"b":"CONTINENTAL","m":[{"n":"ICECONTACT 2","s":"w","z":[["205/55","16",0,1,"tbe89cbaf"]]}]},{"b":"FORWARD","m":[{"n":"SAFARI","s":"s","z":[["205/75","15",0,0,"t0664e737"]]}]},{"b":"GOODRIDE","m":[{"n":"SW-606","s":"w","z":[["225/60","18",0,1,"t12a00dcf"]]}]},{"b":"HEADWAY","m":[{"n":"HW503","s":"w","z":[["235/60","18",0,1,"tff7c8e3f"]]}]},{"b":"KAPSEN","m":[{"n":"K3000 PAPIDE","s":"s","z":[["235/45","18",0,0,"t44ac9c38"]]}]},{"b":"LAUFENN","m":[{"n":"I FIT ICE LW71","s":"w","z":[["245/70","16",0,1,"t8d885fa9"]]}]},{"b":"MAZZINI","m":[{"n":"SNOWLEOPARD","s":"w","z":[["235/55","18",0,0,"t958ddec1"]]}]},{"b":"NEXT","m":[{"n":"—","s":"s","z":[["185/75","16",1,0,"t82f0826e"]]}]},{"b":"QUARTUM","m":[{"n":"S49 H 94","s":"s","z":[["205/65","15",0,0,"tadf7f8e3"]]}]},{"b":"ROADX","m":[{"n":"RXFROST WH12","s":"w","z":[["215/65","17",0,0,"t51795893"]]}]},{"b":"ROCKBLADE","m":[{"n":"ROCK838C","s":"s","z":[["225/65","16",1,0,"tc2209df9"]]}]},{"b":"SNOWGARD","m":[{"n":"—","s":"w","z":[["185/70","14",0,1,"t7f69c102"]]}]},{"b":"SPORTRAK","m":[{"n":"SP796","s":"s","z":[["205/75","16",1,0,"tde22593e"]]}]},{"b":"STARMAXX","m":[{"n":"INCURRO ST450 TL","s":"s","z":[["235/50","18",0,0,"tc28b05d3"]]}]},{"b":"VIATTI","m":[{"n":"V-521","s":"w","z":[["185/65","14",0,0,"tf6eaa9cf"]]}]},{"b":"АШК","m":[{"n":"ВЛИ-5","s":"s","z":[["175/80","16",1,0,"ta4e459c7"]]}]},{"b":"Другие","m":[{"n":"АИ-168У","s":"s","z":[["165","13",0,0,"t3bf05595"]]}]}];
+
+// Фото товаров: положите файл img/<id товара>.jpg (или .png / .webp) рядом с index.html.
+// Если фото нет — показывается рисунок.
+const PHOTO_EXTS = ["jpg", "png", "webp"];
+const PHOTOS = {};
+let photoRenderQueued = false;
+function tryPhoto(id, i){
+  if(i >= PHOTO_EXTS.length){ PHOTOS[id] = false; return; }
+  const im = new Image();
+  im.onload = () => {
+    PHOTOS[id] = im.src;
+    if(!photoRenderQueued){
+      photoRenderQueued = true;
+      requestAnimationFrame(() => { photoRenderQueued = false; if(state.view === "catalog") render(); });
+    }
+  };
+  im.onerror = () => tryPhoto(id, i + 1);
+  im.src = `img/${id}.${PHOTO_EXTS[i]}`;
+}
+const TIRE_INDEX = {};
+TIRES.forEach(br => br.m.forEach(m => m.z.forEach(z => {
+  const [size, rim, c, stud, id] = z;
+  const name = `${br.b} ${m.n} ${size} R${rim}${c?"C":""}${stud?" шип":""}`;
+  TIRE_INDEX[id] = { br, m, z };
+  ITEM_INDEX[id] = { id, icon:"wheel", name, color:"#4cc38a", desc:"" };
+})));
+const TOLAT_MAP = {"А":"A","В":"B","Е":"E","К":"K","М":"M","Н":"H","О":"O","Р":"P","С":"C","Т":"T","Х":"X","У":"Y"};
+const normT = s => s.toUpperCase().split("").map(ch => TOLAT_MAP[ch] || ch).join("").replace(/[\s\-]/g, "");
+function tireMatch(br, m, z, q){
+  if(state.tSeason !== "all" && !m.s.includes(state.tSeason)) return false;
+  if(state.tRim !== "all" && z[1] !== state.tRim) return false;
+  if(!q) return true;
+  const qd = q.replace(/[^0-9]/g, "");
+  if(/^R?\d/.test(q) && /^[R0-9\/.,]+$/.test(q)){            // размер: 205/55R16, 2055516, R16
+    if(q.startsWith("R")) return ("R" + z[1]).startsWith(q.replace(",", "."));
+    const zd = (z[0] + z[1]).replace(/[^0-9]/g, "");
+    return zd.startsWith(qd);
+  }
+  return normT(br.b + " " + m.n).includes(q);
+}
+const VIN_ITEM = { id:"vin", icon:"gear", name:"Поиск по VIN", color:"#5aa2ff" };
 
 // История заявок приходит от бота в параметре ?h=... (base64url JSON: [[номер,"ГГГГ-ММ-ДД","n|d|c","id1,id2"], ...])
 function readHistory(){
@@ -195,7 +500,8 @@ function readHistory(){
 }
 const HISTORY = readHistory();
 
-const state = { view:"catalog", cat:CATEGORIES[0].id, selected:new Set(), sheet:null };
+const START_VIEW = new URLSearchParams(location.search).get("v") === "vin" ? "vin" : "catalog";
+const state = { tSeason:"all", tRim:"all", tq:"", tAll:false, view:START_VIEW, cat:CATEGORIES[0].id, selected:new Set(), sheet:null, vin:"", part:"", vinHelp:false };
 
 const MONTHS = ["Январь","Февраль","Март","Апрель","Май","Июнь","Июль","Август","Сентябрь","Октябрь","Ноябрь","Декабрь"];
 const MSHORT = ["янв","фев","мар","апр","мая","июн","июл","авг","сен","окт","ноя","дек"];
@@ -216,33 +522,140 @@ function catalogHTML(){
   const n = state.selected.size, cat = CATEGORIES.find(c => c.id === state.cat);
   const hero = `
   <div class="hero">
-    <svg class="door" viewBox="0 0 100 80"><path d="M6 30 50 6l44 24"/><rect x="16" y="30" width="68" height="46" rx="2"/><path d="M16 42h68M16 54h68M16 66h68"/></svg>
+    ${heroArt()}
     <div class="hero-top"><div class="brand">Гараж</div>
       <button class="round" data-view="info" aria-label="Информация"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.01"/></svg></button></div>
     <div class="hero-bottom">
       <div class="label">В заявке</div>
-      <div class="count"><b>${n}</b><span>${plural(n,"позиция","позиции","позиций")}</span>
+      <div class="count"><b id="heroCount">${n}</b><span>${plural(n,"позиция","позиции","позиций")}</span>
         <button class="round" data-cart aria-label="Открыть заявку"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></div>
-      <div class="hero-note">Всё под заказ · 3–14 дней · цену подтвердим после заявки</div>
+      <div class="hero-note">Всё под заказ · цену подтвердим после заявки</div>
     </div>
   </div>`;
+  const words = ["Под заказ 3–14 дней","Поиск по VIN бесплатно","Гарантия 14 дней","Доставка по городу","Самовывоз бесплатно"];
+  const line = words.map(w => `${w}<i>●</i>`).join("");
+  const ticker = `<div class="ticker" aria-hidden="true"><div>${line}${line}</div></div>`;
+  const promo = `<button class="vinpromo" data-view="vin">${icon(VIN_ITEM)}
+    <div class="body"><b>Поиск по VIN</b><span>Подберём любую запчасть под вашу машину</span></div><span class="free">Бесплатно</span></button>`;
   const chips = CATEGORIES.map(c => `<button class="chip${c.id===state.cat?" active":""}" data-cat="${c.id}">${c.label}</button>`).join("");
-  const tiles = cat.items.length ? cat.items.map(raw => {
-    const it = ITEM_INDEX[raw.id], on = state.selected.has(it.id);
-    return `<div class="tile${on?" on":""}" data-open="${it.id}">${icon(it)}
-      <button class="add" data-toggle="${it.id}" aria-label="В заявку"><svg viewBox="0 0 24 24">${on?'<path d="m5 12 5 5 9-10"/>':'<path d="M12 5v14M5 12h14"/>'}</svg></button>
-      <div class="name">${it.name}</div>
-      <div class="meta"><div class="meta-row"><span class="st">${on?"В заявке":"Под заказ"}</span><span class="d">3–14 дн</span></div><div class="bar"><i></i></div></div>
-    </div>`;
-  }).join("") : `<div class="empty">Пока пусто — уже подбираем поставщиков для этой категории.<br>Нужно что-то конкретное — напишите в поддержку.</div>`;
-  return hero + `<div class="chips">${chips}</div><div class="grid">${tiles}</div>`;
+
+  let cards = "";
+  if(cat.tires){
+    const nb = TIRES.length, nm = TIRES.reduce((a,b) => a + b.m.length, 0);
+    return hero + ticker + promo + `<div class="chips">${chips}</div>` +
+      `<div class="section"><b>Шины</b><span>${nb} марок · ${nm} моделей · под заказ</span></div>` +
+      tiresHTML() + `<div class="grid" id="tireGrid" style="margin-top:12px">${tireGridHTML()}</div>`;
+  }
+  if(!cat.items.length){
+    cards = `<div class="empty">Пока пусто — уже подбираем поставщиков для этой категории.<br>Нужно что-то конкретное — напишите в поддержку.</div>`;
+  } else {
+    const ordered = [...cat.items].sort((a,b) => (b.hit?1:0) - (a.hit?1:0));
+    ordered.forEach((raw, i) => {
+      const it = ITEM_INDEX[raw.id], on = state.selected.has(it.id);
+      if(raw.hit){
+        cards += `<div class="feat${on?" on":""}" data-open="${it.id}">
+          ${PHOTOS[it.id] ? `<img class="fphoto" src="${PHOTOS[it.id]}" alt="">` : `<svg class="art" viewBox="0 0 24 24">${ICONS[it.icon]}</svg>`}
+          <span class="hit">★ Хит</span>
+          <div class="fname">${it.name}</div>
+          <div class="fdesc">${it.desc}</div>
+          <div class="fwrap"><button class="fbtn" data-toggle="${it.id}">${on?"✓ В заявке":"+ В заявку"}</button></div>
+        </div>`;
+      } else {
+        cards += `<div class="tile${on?" on":""}" data-open="${it.id}">
+          ${PHOTOS[it.id] ? "" : `<svg class="wm" viewBox="0 0 24 24">${ICONS[it.icon]}</svg>`}
+          <div class="no">№${String(i+1).padStart(2,"0")}</div>
+          <button class="add" data-toggle="${it.id}" aria-label="В заявку"><svg viewBox="0 0 24 24">${on?'<path d="m5 12 5 5 9-10"/>':'<path d="M12 5v14M5 12h14"/>'}</svg></button>
+          ${PHOTOS[it.id] ? `<div class="ph"><img src="${PHOTOS[it.id]}" alt=""></div>` : ""}
+          <div class="name">${it.name}</div>
+          <div class="meta"><div class="meta-row"><span class="st">${on?"В заявке":"Под заказ"}</span><span class="d">3–14 дн</span></div><div class="bar"><i></i></div></div>
+        </div>`;
+      }
+      if(i === 0 && cat.bundles){
+        cat.bundles.forEach((bd, k) => {
+          const all = bd.ids.every(id => state.selected.has(id));
+          const pair = bd.ids.map(id => `<svg viewBox="0 0 24 24">${ICONS[ITEM_INDEX[id].icon]}</svg>`).join("<em>+</em>");
+          cards += `<div class="bundle${all?" on":""}">
+            <div class="pair">${pair}</div>
+            <div class="bt"><small>Комплект</small><b>${bd.title}</b><span>${bd.desc}</span></div>
+            <button class="bbtn" data-bundle="${cat.id}:${k}">${all?"✓ Оба<br>в заявке":"Добавить<br>оба"}</button>
+          </div>`;
+        });
+      }
+    });
+  }
+  const total = cat.items.length;
+  const section = total ? `<div class="section"><b>${cat.label}</b><span>${total} ${plural(total,"товар","товара","товаров")} · под заказ</span></div>` : "";
+  return hero + ticker + promo + `<div class="chips">${chips}</div>` + section + `<div class="grid">${cards}</div>`;
+}
+
+function tireGridHTML(){
+  const q = normT(state.tq || "");
+  const res = [];
+  TIRES.forEach(br => {
+    let models = 0, sizes = 0, sel = 0, rims = new Set(), seasons = new Set();
+    br.m.forEach(m => {
+      const zz = m.z.filter(z => tireMatch(br, m, z, q));
+      if(!zz.length) return;
+      models++; sizes += zz.length; zz.forEach(z => { rims.add(+z[1]); if(state.selected.has(z[4])) sel++; });
+      [...m.s].forEach(s => seasons.add(s));
+    });
+    if(models) res.push({ br, models, sizes, sel, rims:[...rims].sort((a,b)=>a-b), seasons });
+  });
+  if(!res.length) return `<div class="empty tempty">Ничего не нашлось.<br>Попробуйте другой размер или марку — или пришлите запрос через «Поиск по VIN».</div>`;
+  const LIMIT = 12, list = (state.tAll || q) ? res : res.slice(0, LIMIT);
+  const tiles = list.map(r => {
+    const rr = r.rims.length ? (r.rims.length > 1 ? `R${r.rims[0]}–R${r.rims[r.rims.length-1]}` : `R${r.rims[0]}`) : "";
+    const ss = [r.seasons.has("w") ? "Зима" : "", r.seasons.has("s") ? "Лето" : ""].filter(Boolean).join(" · ");
+    return `<button class="brand-t${r.sel?" on":""}" data-brand="${TIRES.indexOf(r.br)}">
+      <svg class="wheel" viewBox="0 0 24 24">${ICONS.wheel}</svg>
+      ${r.sel ? `<span class="cnt">${r.sel}</span>` : ""}
+      <div class="bn${r.br.b.length > 9 ? " xl" : r.br.b.length > 7 ? " l" : ""}">${r.br.b}</div>
+      <div class="bm">${r.models} ${plural(r.models,"модель","модели","моделей")} · ${r.sizes} ${plural(r.sizes,"размер","размера","размеров")}</div>
+      <div class="br"><span>${rr}</span><span class="ss">${ss}</span></div>
+    </button>`;
+  }).join("");
+  const more = list.length < res.length ? `<button class="more" data-tall>Показать все марки (${res.length})</button>` : "";
+  return tiles + more;
+}
+function tiresHTML(){
+  const RIMS = ["all","13","14","15","16","17","18","19","20"];
+  return `<div class="tfilters">
+    <div class="seg">${[["all","Все"],["w","Зима"],["s","Лето"]].map(([k,l]) => `<button class="${state.tSeason===k?"on":""}" data-tseason="${k}">${l}</button>`).join("")}</div>
+    <div class="rims">${RIMS.map(r => `<button class="${state.tRim===r?"on":""}" data-trim="${r}">${r==="all"?"Все":"R"+r}</button>`).join("")}</div>
+    <label class="tsearch"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input id="tq" placeholder="Марка, модель или размер: 205/55 R16" value="${(state.tq||"").replace(/"/g,"&quot;")}" autocomplete="off"></label>
+  </div>`;
+}
+function brandSheet(bi){
+  const br = TIRES[bi], q = normT(state.tq || "");
+  const RIM_ORDER = (a,b) => parseFloat(a) - parseFloat(b);
+  const filters = [state.tSeason==="w"?"зима":state.tSeason==="s"?"лето":"", state.tRim!=="all"?"R"+state.tRim:"", state.tq?`«${state.tq}»`:""].filter(Boolean);
+  let total = 0;
+  const blocks = br.m.map(m => {
+    const zz = m.z.filter(z => tireMatch(br, m, z, q));
+    if(!zz.length) return "";
+    total += zz.length;
+    const byRim = {};
+    zz.forEach(z => { const k = z[1] + (z[2] ? "C" : ""); (byRim[k] = byRim[k] || []).push(z); });
+    const rows = Object.keys(byRim).sort(RIM_ORDER).map(k => `<div class="rrow"><div class="rl">R${k}</div><div class="zs">${
+      byRim[k].map(z => `<button class="${state.selected.has(z[4])?"on":""}" data-toggle="${z[4]}">${z[0]}${z[3]?"<small>шип</small>":""}</button>`).join("")
+    }</div></div>`).join("");
+    const se = m.s === "ws" ? "Зима/лето" : m.s === "w" ? "Зима" : "Лето";
+    return `<div class="mdl"><div class="mt"><b>${m.n}</b><span class="se">${se}</span></div>${rows}</div>`;
+  }).join("");
+  const n = state.selected.size;
+  return `<div class="grab"></div>
+    <div class="shead"><h4>${br.b}</h4><span>${total} ${plural(total,"размер","размера","размеров")}</span></div>
+    ${filters.length ? `<div class="fnote">Фильтр: ${filters.join(" · ")}</div>` : `<div class="fnote">Нажмите на размер, чтобы добавить в заявку</div>`}
+    ${blocks}
+    <div class="sfoot"><button class="primary" data-closesheet>${n ? `Готово · в заявке ${n}` : "Готово"}</button></div>`;
 }
 
 function historyHTML(){
   const total = HISTORY.length, active = HISTORY.filter(r => r.status === "n").length;
   const hero = `
   <div class="hero plain">
-    <svg class="door" viewBox="0 0 100 80"><path d="M6 30 50 6l44 24"/><rect x="16" y="30" width="68" height="46" rx="2"/><path d="M16 42h68M16 54h68M16 66h68"/></svg>
+    ${heroArt()}
     <div class="hero-top"><div class="brand">Мои заявки</div><span class="pillchip">${total} ${plural(total,"заявка","заявки","заявок")}</span></div>
     <div class="hero-bottom"><div class="label">В работе</div><div class="count"><b>${active}</b></div></div>
   </div>`;
@@ -258,7 +671,7 @@ function historyHTML(){
   const ST = { n:["В работе","s-n"], d:["Готово","s-d"], c:["Отменена","s-c"] };
   const body = groups.map(g => {
     const rows = g.rows.map(r => {
-      const first = ITEM_INDEX[r.ids[0]];
+      const first = r.ids[0] === "vin" ? VIN_ITEM : ITEM_INDEX[r.ids[0]];
       const title = first ? first.name : "Заявка";
       const more = r.ids.length > 1 ? ` <small>+${r.ids.length-1}</small>` : "";
       const [stText, stCls] = ST[r.status] || ST.n;
@@ -270,6 +683,71 @@ function historyHTML(){
     return `<div class="month"><span>${g.title}</span><b>${g.rows.length} ${plural(g.rows.length,"заявка","заявки","заявок")}</b></div>${rows}`;
   }).join("");
   return hero + body + `<div class="hint">Статусы обновляются, когда бот присылает новое сообщение.<br>Чтобы обновить вручную — отправьте боту /start.</div>`;
+}
+
+/* ---------- VIN ---------- */
+const LOOKALIKE = {"А":"A","В":"B","Е":"E","К":"K","М":"M","Н":"H","Р":"P","С":"C","Т":"T","Х":"X","У":"Y"};
+function normVin(s){
+  return s.toUpperCase().split("").map(ch => LOOKALIKE[ch] || ch).join("").replace(/[^A-Z0-9]/g, "").slice(0, 17);
+}
+function vinCheck(v){
+  if(!v) return { ok:false, err:"" };
+  if(/[IOQ]/.test(v)) return { ok:false, err:"В VIN не бывает букв I, O, Q — скорее всего, это цифры 1 и 0." };
+  if(v.length < 17) return { ok:false, err:"" };
+  return { ok:/^[A-HJ-NPR-Z0-9]{17}$/.test(v), err:"" };
+}
+function vinHTML(){
+  const QUICK = ["Тормозные колодки","Фильтры для ТО","Свечи зажигания","Амортизаторы","Ремень ГРМ","Лампы"];
+  return `
+  <div class="topbar"><button class="back" data-view="catalog" aria-label="Назад"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><h2>Поиск по VIN</h2></div>
+  <div class="hero plain" style="min-height:0">
+    <div class="hero-top"><div class="brand">Подбор запчасти</div><span class="pillchip">Бесплатно</span></div>
+    <div class="steps">
+      <div><b>1</b>Пришлите VIN и деталь</div>
+      <div><b>2</b>Найдём у поставщиков</div>
+      <div><b>3</b>Сообщим цену и срок</div>
+    </div>
+  </div>
+  <div class="form">
+    <div class="flabel"><span>VIN-номер</span><span class="cnt" id="vinCnt">0/17</span></div>
+    <input class="vin" id="vinInput" inputmode="latin" autocomplete="off" autocapitalize="characters" spellcheck="false"
+      placeholder="XW8ZZZ61ZJG012345" value="${state.vin}">
+    <div class="err" id="vinErr"></div>
+    <button class="help" data-vinhelp>Где найти VIN?</button>
+    <div class="helpbox${state.vinHelp?" show":""}" id="helpBox">
+      • в СТС и ПТС — строка «Идентификационный номер (VIN)»<br>
+      • на табличке под лобовым стеклом со стороны водителя<br>
+      • на стойке водительской двери
+    </div>
+  </div>
+  <div class="form">
+    <div class="flabel"><span>Что нужно найти</span></div>
+    <textarea class="part" id="partInput" maxlength="300" placeholder="Например: передние тормозные колодки">${state.part}</textarea>
+    <div class="quick">${QUICK.map(q => `<button data-quick="${q}">${q}</button>`).join("")}</div>
+  </div>
+  <button class="primary" id="vinSend" disabled>Отправить запрос</button>
+  <div class="hint">Ответим в Telegram с ценой и сроком доставки.</div>`;
+}
+function updateVinUI(){
+  const inp = document.getElementById("vinInput");
+  if(!inp) return;
+  const v = state.vin, chk = vinCheck(v);
+  document.getElementById("vinCnt").textContent = v.length + "/17";
+  document.getElementById("vinCnt").classList.toggle("ok", chk.ok);
+  inp.classList.toggle("ok", chk.ok);
+  inp.classList.toggle("bad", !!chk.err);
+  document.getElementById("vinErr").textContent = chk.err;
+  document.getElementById("vinSend").disabled = !(chk.ok && state.part.trim().length >= 2);
+}
+function sendVin(){
+  const vin = state.vin, part = state.part.trim();
+  if(!vinCheck(vin).ok || part.length < 2) return;
+  if(tg && tg.sendData && tg.initData !== undefined){
+    tg.sendData(JSON.stringify({ type:"vin", vin, part }));
+    tg.close();
+  } else {
+    alert("Откройте форму через кнопку «⚙️ Поиск по VIN» в боте, чтобы отправить запрос:\n\nVIN: " + vin + "\nДеталь: " + part);
+  }
 }
 
 function infoHTML(){
@@ -286,7 +764,8 @@ function infoHTML(){
 /* ---------- sheet ---------- */
 function itemSheet(id){
   const it = ITEM_INDEX[id], on = state.selected.has(id);
-  return `<div class="grab"></div>${icon(it,"big")}<h4>${it.name}</h4><p>${it.desc}</p><span class="tag">Под заказ · 3–14 дней</span>
+  const pic = PHOTOS[id] ? `<div class="sph"><img src="${PHOTOS[id]}" alt=""></div>` : icon(it,"big");
+  return `<div class="grab"></div>${pic}<h4>${it.name}</h4><p>${it.desc}</p><span class="tag">Под заказ · 3–14 дней</span>
     <button class="primary" data-sheet-toggle="${id}">${on?"Убрать из заявки":"Добавить в заявку"}</button>`;
 }
 function cartSheet(){
@@ -301,12 +780,15 @@ function cartSheet(){
 }
 function openSheet(kind, id){
   state.sheet = { kind, id };
-  document.getElementById("sheet").innerHTML = kind === "cart" ? cartSheet() : itemSheet(id);
+  document.getElementById("sheet").innerHTML = kind === "cart" ? cartSheet() : kind === "brand" ? brandSheet(id) : itemSheet(id);
+  document.getElementById("sheet").scrollTop = 0;
   document.getElementById("sheet").classList.add("show");
   document.getElementById("shade").classList.add("show");
 }
 function closeSheet(){
+  const wasBrand = state.sheet && state.sheet.kind === "brand";
   state.sheet = null;
+  if(wasBrand && state.view === "catalog"){ const g = document.getElementById("tireGrid"); if(g) g.innerHTML = tireGridHTML(); }
   document.getElementById("sheet").classList.remove("show");
   document.getElementById("shade").classList.remove("show");
 }
@@ -314,17 +796,36 @@ function closeSheet(){
 /* ---------- render ---------- */
 function render(){
   const v = state.view;
-  document.getElementById("view").innerHTML = v === "catalog" ? catalogHTML() : v === "history" ? historyHTML() : infoHTML();
+  document.getElementById("view").innerHTML =
+    v === "catalog" ? catalogHTML() : v === "history" ? historyHTML() : v === "vin" ? vinHTML() : infoHTML();
+  if(v === "vin") updateVinUI();
   document.querySelectorAll(".pill button").forEach(b => b.classList.toggle("active", b.dataset.view === v));
   const n = state.selected.size;
   const badge = document.getElementById("badge"); badge.textContent = n; badge.classList.toggle("show", n > 0);
   document.getElementById("cartcount").textContent = n + " " + plural(n,"позиция","позиции","позиций");
   document.getElementById("cartbar").classList.toggle("show", n > 0 && v === "catalog");
   if(state.sheet && state.sheet.kind === "cart") document.getElementById("sheet").innerHTML = cartSheet();
+  if(state.sheet && state.sheet.kind === "brand"){
+    const sh = document.getElementById("sheet"), top = sh.scrollTop;
+    sh.innerHTML = brandSheet(state.sheet.id); sh.scrollTop = top;
+  }
+}
+function bump(id){
+  requestAnimationFrame(() => {
+    document.querySelectorAll(`[data-toggle="${id}"]`).forEach(el => el.classList.add("pop"));
+    ["badge","heroCount"].forEach(x => { const el = document.getElementById(x); if(el){ el.classList.remove("pop"); void el.offsetWidth; el.classList.add("pop"); } });
+  });
 }
 function toggle(id){
   if(state.selected.has(id)) state.selected.delete(id); else state.selected.add(id);
-  haptic(); render();
+  haptic(); render(); bump(id);
+}
+function toggleBundle(key){
+  const [catId, k] = key.split(":");
+  const bd = CATEGORIES.find(c => c.id === catId).bundles[+k];
+  const all = bd.ids.every(id => state.selected.has(id));
+  bd.ids.forEach(id => all ? state.selected.delete(id) : state.selected.add(id));
+  haptic(); render(); bd.ids.forEach(bump);
 }
 function sendRequest(){
   if(!state.selected.size) return;
@@ -343,7 +844,23 @@ document.addEventListener("click", e => {
   if(tog){ e.stopPropagation(); toggle(tog.dataset.toggle); return; }
   const st = t.closest("[data-sheet-toggle]");
   if(st){ toggle(st.dataset.sheetToggle); closeSheet(); return; }
+  const ts = t.closest("[data-tseason]");
+  if(ts){ state.tSeason = ts.dataset.tseason; state.tAll = false; haptic(); render(); return; }
+  const tr = t.closest("[data-trim]");
+  if(tr){ state.tRim = tr.dataset.trim; state.tAll = false; haptic(); render(); return; }
+  if(t.closest("[data-tall]")){ state.tAll = true; render(); return; }
+  const bt = t.closest("[data-brand]");
+  if(bt){ openSheet("brand", +bt.dataset.brand); return; }
+  if(t.closest("[data-closesheet]")){ closeSheet(); return; }
+  const bb = t.closest("[data-bundle]");
+  if(bb){ e.stopPropagation(); toggleBundle(bb.dataset.bundle); return; }
   if(t.closest("#sendBtn")){ sendRequest(); return; }
+  if(t.closest("#vinSend")){ sendVin(); return; }
+  const q = t.closest("[data-quick]");
+  if(q){ const ta = document.getElementById("partInput");
+    state.part = state.part.trim() ? state.part.trim() + ", " + q.dataset.quick.toLowerCase() : q.dataset.quick;
+    ta.value = state.part; haptic(); updateVinUI(); return; }
+  if(t.closest("[data-vinhelp]")){ state.vinHelp = !state.vinHelp; document.getElementById("helpBox").classList.toggle("show", state.vinHelp); return; }
   if(t.closest("[data-cart]") || t.closest("#cartbar")){ openSheet("cart"); return; }
   const chip = t.closest("[data-cat]");
   if(chip){ state.cat = chip.dataset.cat; haptic(); render(); return; }
@@ -358,8 +875,27 @@ document.addEventListener("click", e => {
   }
 });
 
-if(tg){ tg.ready(); tg.expand(); try{ tg.setHeaderColor("#0a0a0c"); tg.setBackgroundColor("#0a0a0c"); }catch(e){} }
+document.addEventListener("input", e => {
+  if(e.target.id === "vinInput"){ state.vin = normVin(e.target.value); e.target.value = state.vin; updateVinUI(); }
+  if(e.target.id === "partInput"){ state.part = e.target.value; updateVinUI(); }
+  if(e.target.id === "tq"){ state.tq = e.target.value.trim(); document.getElementById("tireGrid").innerHTML = tireGridHTML(); }
+});
+
+if(tg){ tg.ready(); tg.expand(); try{ const bg = getComputedStyle(document.body).getPropertyValue("--bg").trim(); tg.setHeaderColor(bg); tg.setBackgroundColor(bg); }catch(e){} }
 render();
+Object.keys(ITEM_INDEX).forEach(id => tryPhoto(id, 0));
+
+// заставка с воротами — один раз за сессию и только при открытии каталога
+(function(){
+  const intro = document.getElementById("intro");
+  let seen = false;
+  try{ seen = sessionStorage.getItem("garageIntro") === "1"; sessionStorage.setItem("garageIntro","1"); }catch(e){}
+  const reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if(seen || reduce || START_VIEW !== "catalog"){ intro.remove(); return; }
+  document.getElementById("introLogo").src = LOGO;
+  setTimeout(() => intro.classList.add("up"), 650);
+  setTimeout(() => intro.remove(), 1600);
+})();
 </script>
 </body>
 </html>
