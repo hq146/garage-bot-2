@@ -442,6 +442,7 @@ const ICONS = {
   shine: '<path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M18 6l-2.5 2.5M8.5 15.5 6 18"/>',
   wheel: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.4"/><path d="M12 3v5.6M12 15.4V21M3 12h5.6M15.4 12H21"/>',
   box:   '<path d="M4 8 12 4l8 4v8l-8 4-8-4V8Z"/><path d="m4 8 8 4 8-4M12 12v8"/>',
+  bug:   '<ellipse cx="12" cy="14" rx="4.5" ry="6"/><path d="M12 8v12M9.5 7 8 4.5M14.5 7 16 4.5M7.5 12H4M16.5 12H20M7.8 16.5 5 18.5M16.2 16.5 19 18.5"/>',
   gear:  '<circle cx="12" cy="12" r="3"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M18.7 5.3l-2.1 2.1M7.4 16.6l-2.1 2.1"/>',
 };
 
@@ -458,6 +459,16 @@ const CATEGORIES = [
     { id:"ironoff", icon:"wheel", name:"Shine Systems IronOFF", desc:"Бескислотный очиститель дисков с индикатором — краснеет при реакции с металлической пылью." },
     { id:"glossprotection", icon:"shine", name:"Shine Systems Gloss Protection", desc:"Наноконсервант для 3-й фазы — быстрая сушка, блеск и лёгкий гидрофоб." },
     { id:"quickdetailer", icon:"shine", name:"Shine Systems Quick Detailer", desc:"Спрей быстрого блеска между полными мойками." },
+    { id:"eurowash", icon:"spray", name:"Shine Systems EuroWash",
+      desc:"Концентрированный активный шампунь для бесконтактной мойки. Для пеногенератора разводится 1:50–1:100, выдержка на кузове 2–3 минуты." },
+    { id:"bubblewax", icon:"drop", name:"Shine Systems BubbleWax",
+      desc:"Пенный воск для сушки и защиты кузова: наносится пеной после мойки, помогает быстро высушить машину и даёт блеск." },
+    { id:"insectoff", icon:"bug", name:"Shine Systems InsectOFF",
+      desc:"Очиститель следов насекомых. Справляется даже с застарелыми следами на лаке, стёклах, фарах, пластике и хроме. Применяется без разведения." },
+    { id:"acidcleaner", icon:"wheel", name:"Shine Systems AcidCleaner",
+      desc:"Кислотный очиститель для дисков, выхлопных труб и других кислотостойких деталей: убирает колодочную пыль, ржавчину и известковый налёт. Не для алюминиевых, анодированных и хромированных поверхностей." },
+    { id:"blackstar", icon:"wheel", name:"Shine Systems BlackStar",
+      desc:"Чернитель резины с глянцем: освежает цвет шин, маскирует потёртости, ложится без жирных разводов. Подходит и для резиновых уплотнителей." },
   ], bundles:[
     { ids:["bitumoff","ironoff"], title:"BitumOFF + IronOFF", desc:"Кузов и диски — часто берут вместе" },
   ]},
