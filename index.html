@@ -309,6 +309,28 @@
     font:800 12px/22px var(--head);text-align:center;}
   .more{grid-column:1/-1;padding:13px;border-radius:14px;background:var(--card);font:700 14px var(--head);text-transform:uppercase;letter-spacing:.8px;}
 
+  /* «не нашли шины» */
+  .notfound{grid-column:1/-1;display:flex;align-items:center;gap:14px;text-align:left;border-radius:20px;padding:16px;
+    background:var(--card);border:1.5px dashed rgba(143,139,128,.55);}
+  .notfound svg{flex:none;width:40px;height:40px;fill:none;stroke:var(--text);stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round;}
+  .notfound .t{flex:1;min-width:0;}
+  .notfound b{display:block;font:700 16px/1.15 var(--head);text-transform:uppercase;letter-spacing:.5px;}
+  .notfound span{display:block;font-size:13px;color:var(--muted);margin-top:4px;line-height:1.35;}
+  .notfound i{flex:none;font-style:normal;font:700 22px/1 var(--head);}
+  .askother{display:block;width:100%;margin-top:12px;padding:12px;border-radius:14px;border:1px dashed var(--line);color:var(--muted);font-size:14px;}
+  .finput{width:100%;background:var(--card2);border:1.5px solid transparent;border-radius:16px;padding:14px;color:var(--text);
+    font:600 17px/1.2 inherit;font-family:inherit;outline:none;}
+  .finput:focus{border-color:var(--line);}
+  .finput.big{font:700 20px/1.2 var(--head);letter-spacing:1px;}
+  .finput.ok{border-color:var(--green);}
+  .fhint{font-size:12px;color:var(--muted);margin-top:6px;}
+  .seg.wrap{flex-wrap:wrap;}
+  .seg.wrap button{flex:1 1 40%;}
+  .qty{display:flex;align-items:center;gap:14px;}
+  .qty button{width:46px;height:46px;border-radius:14px;background:var(--card2);font:700 22px/1 var(--head);}
+  .qty b{min-width:60px;text-align:center;font:700 26px/1 var(--head);}
+  .qty span{color:var(--muted);font-size:14px;}
+
   /* карточка марки */
   .sheet .shead{display:flex;justify-content:space-between;align-items:baseline;gap:10px;}
   .sheet .shead h4{margin:4px 0 2px;font:700 26px/1.05 var(--head);text-transform:uppercase;letter-spacing:.6px;}
@@ -485,6 +507,7 @@ function tireMatch(br, m, z, q){
   }
   return normT(br.b + " " + m.n).includes(q);
 }
+const TIREREQ_ITEM = { id:"tirereq", icon:"wheel", name:"Подбор шин", color:"#4cc38a" };
 const VIN_ITEM = { id:"vin", icon:"gear", name:"Поиск по VIN", color:"#5aa2ff" };
 
 // История заявок приходит от бота в параметре ?h=... (base64url JSON: [[номер,"ГГГГ-ММ-ДД","n|d|c","id1,id2"], ...])
@@ -501,7 +524,7 @@ function readHistory(){
 const HISTORY = readHistory();
 
 const START_VIEW = new URLSearchParams(location.search).get("v") === "vin" ? "vin" : "catalog";
-const state = { tSeason:"all", tRim:"all", tq:"", tAll:false, view:START_VIEW, cat:CATEGORIES[0].id, selected:new Set(), sheet:null, vin:"", part:"", vinHelp:false };
+const state = { tr:{ size:"", model:"", season:"any", qty:4 }, tSeason:"all", tRim:"all", tq:"", tAll:false, view:START_VIEW, cat:CATEGORIES[0].id, selected:new Set(), sheet:null, vin:"", part:"", vinHelp:false };
 
 const MONTHS = ["Январь","Февраль","Март","Апрель","Май","Июнь","Июль","Август","Сентябрь","Октябрь","Ноябрь","Декабрь"];
 const MSHORT = ["янв","фев","мар","апр","мая","июн","июл","авг","сен","окт","ноя","дек"];
@@ -588,6 +611,9 @@ function catalogHTML(){
   return hero + ticker + promo + `<div class="chips">${chips}</div>` + section + `<div class="grid">${cards}</div>`;
 }
 
+const NOTFOUND = `<button class="notfound" data-tireask>
+    <svg viewBox="0 0 24 24">${ICONS.wheel}</svg>
+    <div class="t"><b>Не нашли подходящие шины?</b><span>Напишите модель и размер — найдём у поставщиков</span></div><i>→</i></button>`;
 function tireGridHTML(){
   const q = normT(state.tq || "");
   const res = [];
@@ -601,7 +627,7 @@ function tireGridHTML(){
     });
     if(models) res.push({ br, models, sizes, sel, rims:[...rims].sort((a,b)=>a-b), seasons });
   });
-  if(!res.length) return `<div class="empty tempty">Ничего не нашлось.<br>Попробуйте другой размер или марку — или пришлите запрос через «Поиск по VIN».</div>`;
+  if(!res.length) return `<div class="empty tempty">По этому запросу в наличии у поставщиков ничего нет.<br>Оставьте заявку — подберём под заказ.</div>` + NOTFOUND;
   const LIMIT = 12, list = (state.tAll || q) ? res : res.slice(0, LIMIT);
   const tiles = list.map(r => {
     const rr = r.rims.length ? (r.rims.length > 1 ? `R${r.rims[0]}–R${r.rims[r.rims.length-1]}` : `R${r.rims[0]}`) : "";
@@ -615,7 +641,7 @@ function tireGridHTML(){
     </button>`;
   }).join("");
   const more = list.length < res.length ? `<button class="more" data-tall>Показать все марки (${res.length})</button>` : "";
-  return tiles + more;
+  return tiles + more + NOTFOUND;
 }
 function tiresHTML(){
   const RIMS = ["all","13","14","15","16","17","18","19","20"];
@@ -648,6 +674,7 @@ function brandSheet(bi){
     <div class="shead"><h4>${br.b}</h4><span>${total} ${plural(total,"размер","размера","размеров")}</span></div>
     ${filters.length ? `<div class="fnote">Фильтр: ${filters.join(" · ")}</div>` : `<div class="fnote">Нажмите на размер, чтобы добавить в заявку</div>`}
     ${blocks}
+    <button class="askother" data-tireask>Нужен другой размер или модель ${br.b}? Напишите — найдём</button>
     <div class="sfoot"><button class="primary" data-closesheet>${n ? `Готово · в заявке ${n}` : "Готово"}</button></div>`;
 }
 
@@ -671,7 +698,7 @@ function historyHTML(){
   const ST = { n:["В работе","s-n"], d:["Готово","s-d"], c:["Отменена","s-c"] };
   const body = groups.map(g => {
     const rows = g.rows.map(r => {
-      const first = r.ids[0] === "vin" ? VIN_ITEM : ITEM_INDEX[r.ids[0]];
+      const first = r.ids[0] === "vin" ? VIN_ITEM : r.ids[0] === "tirereq" ? TIREREQ_ITEM : ITEM_INDEX[r.ids[0]];
       const title = first ? first.name : "Заявка";
       const more = r.ids.length > 1 ? ` <small>+${r.ids.length-1}</small>` : "";
       const [stText, stCls] = ST[r.status] || ST.n;
@@ -750,6 +777,71 @@ function sendVin(){
   }
 }
 
+/* ---------- подбор шин под заказ ---------- */
+function prettySize(s){
+  const m = s.toUpperCase().replace(/[ХX*]/g, " ").match(/(\d{3})\D{0,3}(\d{2})?\D{0,3}R?\s*(\d{2})\s*(C|С)?/);
+  if(!m) return null;
+  return `${m[1]}${m[2] ? "/" + m[2] : ""} R${m[3]}${m[4] ? "C" : ""}`;
+}
+function tireReqHTML(){
+  const t = state.tr;
+  const SEASONS = [["w_stud","Зима · шип"],["w_fric","Зима · липучка"],["s","Лето"],["any","Не важно"]];
+  return `
+  <div class="topbar"><button class="back" data-view="catalog" aria-label="Назад"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><h2>Подбор шин</h2></div>
+  <div class="hero plain" style="min-height:0">
+    <div class="hero-top"><div class="brand">Под заказ</div><span class="pillchip">Бесплатно</span></div>
+    <div class="steps">
+      <div><b>1</b>Напишите размер и модель</div>
+      <div><b>2</b>Проверим у поставщиков</div>
+      <div><b>3</b>Сообщим цену и срок</div>
+    </div>
+  </div>
+  <div class="form">
+    <div class="flabel"><span>Размер</span><span class="cnt" id="trSizeOk"></span></div>
+    <input class="finput big" id="trSize" placeholder="205/55 R16" autocomplete="off" value="${t.size.replace(/"/g,"&quot;")}">
+    <div class="fhint">Указан на боковине шины, например 205/55 R16</div>
+  </div>
+  <div class="form">
+    <div class="flabel"><span>Марка или модель</span><span>необязательно</span></div>
+    <input class="finput" id="trModel" placeholder="Например: Nordman 8, Pirelli Ice Zero" autocomplete="off" value="${t.model.replace(/"/g,"&quot;")}">
+  </div>
+  <div class="form">
+    <div class="flabel"><span>Сезон</span></div>
+    <div class="seg wrap">${SEASONS.map(([k,l]) => `<button class="${t.season===k?"on":""}" data-trseason="${k}">${l}</button>`).join("")}</div>
+  </div>
+  <div class="form">
+    <div class="flabel"><span>Количество</span></div>
+    <div class="qty"><button data-trqty="-1" aria-label="Меньше">−</button><b>${t.qty}</b><button data-trqty="1" aria-label="Больше">+</button><span>шт.</span></div>
+  </div>
+  <button class="primary" id="trSend" disabled>Отправить запрос</button>
+  <div class="hint">Ответим в Telegram с ценой и сроком доставки.</div>`;
+}
+function updateTireReqUI(){
+  const inp = document.getElementById("trSize"); if(!inp) return;
+  const p = prettySize(state.tr.size);
+  inp.classList.toggle("ok", !!p);
+  document.getElementById("trSizeOk").textContent = p || "";
+  document.getElementById("trSizeOk").classList.toggle("ok", !!p);
+  document.getElementById("trSend").disabled = !p;
+}
+function openTireReq(){
+  const q = (state.tq || "").trim();
+  if(q && !state.tr.size && !state.tr.model){
+    if(prettySize(q)) state.tr.size = q; else state.tr.model = q;
+  }
+  if(state.sheet) closeSheet();
+  state.view = "tirereq"; render(); window.scrollTo(0, 0);
+}
+function sendTireReq(){
+  const size = prettySize(state.tr.size); if(!size) return;
+  const payload = { type:"tire", size, model:state.tr.model.trim().slice(0,80), season:state.tr.season, qty:state.tr.qty };
+  if(tg && tg.sendData && tg.initData !== undefined){
+    tg.sendData(JSON.stringify(payload)); tg.close();
+  } else {
+    alert("Откройте каталог через кнопку в боте, чтобы отправить запрос:\n\n" + size + " · " + (payload.model || "любая модель") + " · " + payload.qty + " шт.");
+  }
+}
+
 function infoHTML(){
   const block = (t, p) => `<div class="info"><h3>${t}</h3><p>${p}</p></div>`;
   return `<h2>Информация</h2>` +
@@ -797,8 +889,9 @@ function closeSheet(){
 function render(){
   const v = state.view;
   document.getElementById("view").innerHTML =
-    v === "catalog" ? catalogHTML() : v === "history" ? historyHTML() : v === "vin" ? vinHTML() : infoHTML();
+    v === "catalog" ? catalogHTML() : v === "history" ? historyHTML() : v === "vin" ? vinHTML() : v === "tirereq" ? tireReqHTML() : infoHTML();
   if(v === "vin") updateVinUI();
+  if(v === "tirereq") updateTireReqUI();
   document.querySelectorAll(".pill button").forEach(b => b.classList.toggle("active", b.dataset.view === v));
   const n = state.selected.size;
   const badge = document.getElementById("badge"); badge.textContent = n; badge.classList.toggle("show", n > 0);
@@ -844,6 +937,12 @@ document.addEventListener("click", e => {
   if(tog){ e.stopPropagation(); toggle(tog.dataset.toggle); return; }
   const st = t.closest("[data-sheet-toggle]");
   if(st){ toggle(st.dataset.sheetToggle); closeSheet(); return; }
+  if(t.closest("[data-tireask]")){ e.stopPropagation(); openTireReq(); return; }
+  const trs = t.closest("[data-trseason]");
+  if(trs){ state.tr.season = trs.dataset.trseason; haptic(); render(); return; }
+  const trq = t.closest("[data-trqty]");
+  if(trq){ state.tr.qty = Math.min(20, Math.max(1, state.tr.qty + +trq.dataset.trqty)); haptic(); render(); return; }
+  if(t.closest("#trSend")){ sendTireReq(); return; }
   const ts = t.closest("[data-tseason]");
   if(ts){ state.tSeason = ts.dataset.tseason; state.tAll = false; haptic(); render(); return; }
   const tr = t.closest("[data-trim]");
@@ -878,6 +977,8 @@ document.addEventListener("click", e => {
 document.addEventListener("input", e => {
   if(e.target.id === "vinInput"){ state.vin = normVin(e.target.value); e.target.value = state.vin; updateVinUI(); }
   if(e.target.id === "partInput"){ state.part = e.target.value; updateVinUI(); }
+  if(e.target.id === "trSize"){ state.tr.size = e.target.value; updateTireReqUI(); }
+  if(e.target.id === "trModel"){ state.tr.model = e.target.value; }
   if(e.target.id === "tq"){ state.tq = e.target.value.trim(); document.getElementById("tireGrid").innerHTML = tireGridHTML(); }
 });
 
