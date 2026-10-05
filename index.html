@@ -980,7 +980,7 @@ document.addEventListener("click", e => {
   if(open){ openSheet("item", open.dataset.open); return; }
   if(t.id === "shade"){ closeSheet(); return; }
   if(t.closest("#supportBtn")){
-    const url = "https://t.me/GarageSupport";
+    const url = "https://t.me/GarageShopHelp";
     if(tg && tg.openTelegramLink) tg.openTelegramLink(url); else window.open(url, "_blank");
   }
 });
