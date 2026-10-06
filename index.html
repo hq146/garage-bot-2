@@ -347,6 +347,10 @@
   .qty b{min-width:60px;text-align:center;font:700 26px/1 var(--head);}
   .qty span{color:var(--muted);font-size:14px;}
 
+  .instock{color:var(--green)!important;}
+  .brand-t .stk{font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--green);margin-top:6px;}
+  .stkbig{font-size:12px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--green);margin:2px 0 4px;}
+
   /* карточка марки */
   .sheet .shead{display:flex;justify-content:space-between;align-items:baseline;gap:10px;}
   .sheet .shead h4{margin:4px 0 2px;font:700 26px/1.05 var(--head);text-transform:uppercase;letter-spacing:.6px;}
@@ -465,12 +469,12 @@ const ICONS = {
 };
 
 const CATEGORIES = [
-  { id:"diag", label:"Диагностика", color:"#5aa2ff", items:[
+  { id:"diag", label:"Диагностика", color:"#5aa2ff", lead:"3–14", items:[
     { id:"carplay", icon:"plug", name:"Адаптер CarPlay", desc:"Беспроводной CarPlay / Android Auto." },
     { id:"elm327_basic", icon:"scan", name:"OBD-сканер ELM327", desc:"Диагностика неисправностей через телефон." },
     { id:"elm327_wifi", icon:"scan", name:"Автосканер ELM327 Wi-Fi OBD2", desc:"Версия 1.5 (PIC18F25K80), для iPhone и Android.", hit:true },
   ]},
-  { id:"chem", label:"Автохимия", color:"#ff7a3d", items:[
+  { id:"chem", label:"Автохимия", color:"#ff7a3d", lead:"1–5", items:[
     { id:"superstar", g:"wash", t:"Шампунь · 1-я фаза", icon:"spray", name:"Shine Systems SuperStar", desc:"Активный шампунь для 1-й фазы (бесконтактная мойка). Самый мощный по отмыванию в линейке." },
     { id:"cationic", g:"wash", t:"Шампунь · 2-я фаза", icon:"drop", hit:true, name:"Shine Systems Cationic Shampoo", desc:"Катионный шампунь для 2-й фазы (ручная мойка). Гидрофобный эффект и блеск после смывки." },
     { id:"bitumoff", g:"clean", t:"Антибитум", icon:"spray", name:"Shine Systems BitumOFF", desc:"Терпеновый антибитум. Убирает битумные пятна, смолу и следы насекомых с кузова." },
@@ -522,7 +526,7 @@ const CATEGORIES = [
   { id:"tires", label:"Шины", color:"#4cc38a", items:[], tires:true },
 ];
 const ITEM_INDEX = {};
-CATEGORIES.forEach(c => c.items.forEach(it => { if(c.id === "chem" && !it.b) it.b = "Shine Systems"; ITEM_INDEX[it.id] = { ...it, color:c.color }; }));
+CATEGORIES.forEach(c => c.items.forEach(it => { if(c.id === "chem" && !it.b) it.b = "Shine Systems"; ITEM_INDEX[it.id] = { ...it, color:c.color, lead:c.lead || "3–14" }; }));
 const CHEM_BRANDS = ["Shine Systems", "Foam Heroes", "LERATON"];
 const CHEM_GROUPS = [["wash","Мойка кузова"],["clean","Очистители кузова"],["wheels","Колёса и резина"],["protect","Защита и блеск"],["interior","Салон и стёкла"]];
 const BRAND_NOTE = { "Shine Systems":"Профессиональная автохимия для мойки и детейлинга",
@@ -549,12 +553,13 @@ function tryPhoto(id, i){
   im.onerror = () => tryPhoto(id, i + 1);
   im.src = `img/${id}.${PHOTO_EXTS[i]}`;
 }
+const TIRE_LEAD = "1–3";      // шины из прайса — в наличии; срок для клиента
 const TIRE_INDEX = {};
 TIRES.forEach(br => br.m.forEach(m => m.z.forEach(z => {
   const [size, rim, c, stud, id] = z;
   const name = `${br.b} ${m.n} ${size} R${rim}${c?"C":""}${stud?" шип":""}`;
   TIRE_INDEX[id] = { br, m, z };
-  ITEM_INDEX[id] = { id, icon:"wheel", name, color:"#4cc38a", desc:"" };
+  ITEM_INDEX[id] = { id, icon:"wheel", name, color:"#4cc38a", desc:"", lead:TIRE_LEAD, stock:true };
 })));
 const TOLAT_MAP = {"А":"A","В":"B","Е":"E","К":"K","М":"M","Н":"H","О":"O","Р":"P","С":"C","Т":"T","Х":"X","У":"Y"};
 const normT = s => s.toUpperCase().split("").map(ch => TOLAT_MAP[ch] || ch).join("").replace(/[\s\-]/g, "");
@@ -618,7 +623,7 @@ function catalogHTML(){
       <div class="hero-note">Всё под заказ · цену подтвердим после заявки</div>
     </div>
   </div>`;
-  const words = ["Под заказ 3–14 дней","Поиск по VIN бесплатно","Гарантия 14 дней","Доставка по городу","Самовывоз бесплатно"];
+  const words = ["Шины в наличии","Автохимия за 1–5 дней","Под заказ до 14 дней","Поиск по VIN бесплатно","Гарантия 14 дней","Доставка по городу","Самовывоз бесплатно"];
   const line = words.map(w => `${w}<i>●</i>`).join("");
   const ticker = `<div class="ticker" aria-hidden="true"><div>${line}${line}</div></div>`;
   const promo = `<button class="vinpromo" data-view="vin">${icon(VIN_ITEM)}
@@ -628,12 +633,12 @@ function catalogHTML(){
   if(cat.tires){
     const nb = TIRES.length, nm = TIRES.reduce((a,b) => a + b.m.length, 0);
     return hero + ticker + promo + `<div class="chips">${chips}</div>` +
-      `<div class="section"><b>Шины</b><span>${nb} марок · ${nm} моделей · под заказ</span></div>` +
+      `<div class="section"><b>Шины</b><span class="instock">● В наличии · ${nb} марок · ${nm} моделей</span></div>` +
       tiresHTML() + `<div class="grid" id="tireGrid" style="margin-top:12px">${tireGridHTML()}</div>`;
   }
   if(cat.id === "chem"){
     return hero + ticker + promo + `<div class="chips">${chips}</div>` +
-      `<div class="section"><b>Автохимия</b><span>${cat.items.length} товаров · ${CHEM_BRANDS.length} производителя</span></div>` +
+      `<div class="section"><b>Автохимия</b><span>${cat.items.length} товаров · срок 1–5 дней</span></div>` +
       chemBrandCards();
   }
   let cards = "";
@@ -673,7 +678,7 @@ function tileHTML(it, no){
     ${PHOTOS[it.id] ? `<div class="ph"><img src="${PHOTOS[it.id]}" alt=""></div>` : ""}
     <div class="name">${it.name}</div>
     ${it.t ? `<div class="ty">${it.t}</div>` : ""}
-    <div class="meta"><div class="meta-row"><span class="st">${on?"В заявке":"Под заказ"}</span><span class="d">3–14 дн</span></div><div class="bar"><i></i></div></div>
+    <div class="meta"><div class="meta-row"><span class="st">${on?"В заявке":"Под заказ"}</span><span class="d">${it.lead || "3–14"} дн</span></div><div class="bar"><i></i></div></div>
   </div>`;
 }
 function bundleHTML(bd, key){
@@ -710,7 +715,7 @@ function chemBrandHTML(){
   const hit = items.find(it => it.hit);
   const ids = new Set(items.map(it => it.id));
   let html = `<div class="topbar"><button class="back" data-view="catalog" aria-label="Назад"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><h2>${b}</h2></div>
-    <div class="fnote" style="margin:-6px 2px 12px">${BRAND_NOTE[b] || ""} · ${items.length} ${plural(items.length,"товар","товара","товаров")} под заказ</div>
+    <div class="fnote" style="margin:-6px 2px 12px">${BRAND_NOTE[b] || ""} · ${items.length} ${plural(items.length,"товар","товара","товаров")} · привезём за 1–5 дней</div>
     <div class="rims" style="margin:0 -14px 4px">${CHEM_GROUPS.filter(([g]) => items.some(it => it.g === g))
       .map(([g,l]) => `<button data-jump="grp-${g}">${l}</button>`).join("")}</div>`;
   let top = hit ? featHTML(hit) : "";
@@ -752,6 +757,7 @@ function tireGridHTML(){
       ${r.sel ? `<span class="cnt">${r.sel}</span>` : ""}
       <div class="bn${r.br.b.length > 9 ? " xl" : r.br.b.length > 7 ? " l" : ""}">${r.br.b}</div>
       <div class="bm">${r.models} ${plural(r.models,"модель","модели","моделей")} · ${r.sizes} ${plural(r.sizes,"размер","размера","размеров")}</div>
+      <div class="stk">● В наличии</div>
       <div class="br"><span>${rr}</span><span class="ss">${ss}</span></div>
     </button>`;
   }).join("");
@@ -787,6 +793,7 @@ function brandSheet(bi){
   const n = state.selected.size;
   return `<div class="grab"></div>
     <div class="shead"><h4>${br.b}</h4><span>${total} ${plural(total,"размер","размера","размеров")}</span></div>
+    <div class="stkbig">● В наличии · привезём за ${TIRE_LEAD} дня</div>
     ${filters.length ? `<div class="fnote">Фильтр: ${filters.join(" · ")}</div>` : `<div class="fnote">Нажмите на размер, чтобы добавить в заявку</div>`}
     ${blocks}
     <button class="askother" data-tireask>Нужен другой размер или модель ${br.b}? Напишите — найдём</button>
@@ -972,7 +979,7 @@ function infoHTML(){
 function itemSheet(id){
   const it = ITEM_INDEX[id], on = state.selected.has(id);
   const pic = PHOTOS[id] ? `<div class="sph"><img src="${PHOTOS[id]}" alt=""></div>` : icon(it,"big");
-  return `<div class="grab"></div>${pic}<h4>${it.name}</h4>${it.t ? `<div class="fnote" style="margin-top:-4px">${it.t}</div>` : ""}<p>${it.desc}</p><span class="tag">Под заказ · 3–14 дней</span>
+  return `<div class="grab"></div>${pic}<h4>${it.name}</h4>${it.t ? `<div class="fnote" style="margin-top:-4px">${it.t}</div>` : ""}<p>${it.desc}</p><span class="tag">Под заказ · ${it.lead || "3–14"} дней</span>
     <button class="primary" data-sheet-toggle="${id}">${on?"Убрать из заявки":"Добавить в заявку"}</button>`;
 }
 function cartSheet(){
@@ -1037,7 +1044,7 @@ function toggleBundle(key){
 }
 function sendRequest(){
   if(!state.selected.size) return;
-  const items = [...state.selected].map(id => ({ id, name:ITEM_INDEX[id].name }));
+  const items = [...state.selected].map(id => ({ id, name:ITEM_INDEX[id].name, lead:ITEM_INDEX[id].lead || "3–14" }));
   if(tg && tg.sendData && tg.initData !== undefined){
     tg.sendData(JSON.stringify({ items }));
     tg.close();
